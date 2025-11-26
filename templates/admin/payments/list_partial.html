@@ -1,0 +1,260 @@
+{% comment %}
+Payment List Partial - Used for HTMX updates
+Requirements: 6.1, 6.4
+{% endcomment %}
+
+<!-- Results Count -->
+<div class="mb-4 text-sm text-gray-500">
+    Showing {{ payments|length }} payment{{ payments|length|pluralize }}
+</div>
+
+<!-- Desktop Table View -->
+<div class="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trainee
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Method
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                </th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for payment in payments %}
+            <tr class="hover:bg-gray-50 transition-colors" id="payment-row-{{ payment.id }}">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            {% if payment.trainee.profile.profile_image %}
+                            <img class="h-10 w-10 rounded-full object-cover" src="{{ payment.trainee.profile.profile_image.url }}" alt="">
+                            {% else %}
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-500 font-medium text-sm">
+                                    {{ payment.trainee.profile.user.first_name|slice:":1"|upper }}{{ payment.trainee.profile.user.last_name|slice:":1"|upper }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ payment.trainee.profile.user.get_full_name|default:payment.trainee.profile.user.username }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ payment.trainee.profile.user.email }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-semibold text-gray-900">₱{{ payment.amount }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if payment.payment_type == 'membership' %}bg-purple-100 text-purple-800
+                        {% elif payment.payment_type == 'event' %}bg-blue-100 text-blue-800
+                        {% elif payment.payment_type == 'equipment' %}bg-orange-100 text-orange-800
+                        {% else %}bg-gray-100 text-gray-800
+                        {% endif %}">
+                        {{ payment.get_payment_type_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ payment.get_payment_method_display }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ payment.payment_date|date:"M d, Y" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if payment.status == 'completed' %}bg-green-100 text-green-800
+                        {% elif payment.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif payment.status == 'overdue' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800
+                        {% endif %}">
+                        {{ payment.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex items-center justify-end space-x-2">
+                        {% if payment.status == 'pending' %}
+                        <button type="button"
+                                hx-post="{% url 'admin_payment_complete' payment.id %}"
+                                hx-target="#payment-row-{{ payment.id }}"
+                                hx-swap="outerHTML"
+                                class="p-2 min-w-[44px] min-h-[44px] text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors inline-flex items-center justify-center"
+                                title="Mark Completed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'admin_payment_edit' payment.id %}" 
+                           class="p-2 min-w-[44px] min-h-[44px] text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center"
+                           title="Edit">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        <button type="button"
+                                hx-delete="{% url 'admin_payment_delete' payment.id %}"
+                                hx-confirm="Are you sure you want to delete this payment record? This action cannot be undone."
+                                hx-target="#payment-list"
+                                hx-swap="innerHTML"
+                                class="p-2 min-w-[44px] min-h-[44px] text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center justify-center"
+                                title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-6 py-12 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No payments found</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by recording a new payment.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'admin_payment_add' %}" 
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Record Payment
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Mobile Card View -->
+<div class="md:hidden space-y-4">
+    {% for payment in payments %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" id="payment-card-{{ payment.id }}">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12">
+                    {% if payment.trainee.profile.profile_image %}
+                    <img class="h-12 w-12 rounded-full object-cover" src="{{ payment.trainee.profile.profile_image.url }}" alt="">
+                    {% else %}
+                    <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-500 font-medium">
+                            {{ payment.trainee.profile.user.first_name|slice:":1"|upper }}{{ payment.trainee.profile.user.last_name|slice:":1"|upper }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                        {{ payment.trainee.profile.user.get_full_name|default:payment.trainee.profile.user.username }}
+                    </p>
+                    <p class="text-lg font-semibold text-gray-900">₱{{ payment.amount }}</p>
+                </div>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if payment.status == 'completed' %}bg-green-100 text-green-800
+                {% elif payment.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif payment.status == 'overdue' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800
+                {% endif %}">
+                {{ payment.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="mt-4 grid grid-cols-3 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500">Type</p>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                    {% if payment.payment_type == 'membership' %}bg-purple-100 text-purple-800
+                    {% elif payment.payment_type == 'event' %}bg-blue-100 text-blue-800
+                    {% elif payment.payment_type == 'equipment' %}bg-orange-100 text-orange-800
+                    {% else %}bg-gray-100 text-gray-800
+                    {% endif %}">
+                    {{ payment.get_payment_type_display }}
+                </span>
+            </div>
+            <div>
+                <p class="text-gray-500">Method</p>
+                <p class="font-medium text-gray-900">{{ payment.get_payment_method_display }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Date</p>
+                <p class="font-medium text-gray-900">{{ payment.payment_date|date:"M d" }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-4 flex justify-end space-x-2 border-t border-gray-100 pt-4">
+            {% if payment.status == 'pending' %}
+            <button type="button"
+                    hx-post="{% url 'admin_payment_complete' payment.id %}"
+                    hx-target="#payment-card-{{ payment.id }}"
+                    hx-swap="outerHTML"
+                    class="px-4 py-2 min-h-[44px] text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Complete
+            </button>
+            {% endif %}
+            <a href="{% url 'admin_payment_edit' payment.id %}" 
+               class="px-4 py-2 min-h-[44px] text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Edit
+            </a>
+            <button type="button"
+                    hx-delete="{% url 'admin_payment_delete' payment.id %}"
+                    hx-confirm="Are you sure you want to delete this payment?"
+                    hx-target="#payment-list"
+                    hx-swap="innerHTML"
+                    class="px-4 py-2 min-h-[44px] text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Delete
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No payments found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by recording a new payment.</p>
+        <div class="mt-6">
+            <a href="{% url 'admin_payment_add' %}" 
+               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Record Payment
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>

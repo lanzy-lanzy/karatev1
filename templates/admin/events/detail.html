@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.name }} - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Event Details{% endblock %}
+
+{% block content %}
+<style>
+    .detail-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        margin: -1.5rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .detail-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-draft { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+    .status-open { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .status-closed { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .status-ongoing { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .status-completed { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+    .status-cancelled { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+    .status-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        color: #d1d5db;
+    }
+
+    .status-btn.active {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-btn:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #d1d5db;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .edit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    }
+
+    .table-container {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .table-row {
+        display: grid;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .table-row:hover {
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .table-header {
+        background: rgba(239, 68, 68, 0.1);
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table-header:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+
+    @media (max-width: 640px) {
+        .detail-container {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="detail-container">
+    <!-- Back Link and Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <a href="{% url 'admin_events' %}" class="back-btn">
+            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Events
+        </a>
+        <a href="{% url 'admin_event_edit' event.id %}" class="edit-btn">
+            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit Event
+        </a>
+    </div>
+
+    <!-- Event Header Card -->
+    <div class="detail-card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 2rem;">🏆</span> {{ event.name }}
+                    </h1>
+                    <p style="font-size: 0.9rem; color: #9ca3af; margin: 0;">Created {{ event.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div id="event-status">
+                    {% include "admin/events/status_badge.html" %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-label">📅 Event Date</div>
+                    <div class="stat-value">{{ event.event_date|date:"F d, Y" }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">📍 Location</div>
+                    <div class="stat-value">{{ event.location }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">⏰ Registration Deadline</div>
+                    <div class="stat-value">{{ event.registration_deadline|date:"F d, Y" }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">👥 Participants</div>
+                    <div class="stat-value">{{ event.participant_count }} / {{ event.max_participants }}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio event.participant_count event.max_participants 100 %}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% if event.description %}
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border-left: 4px solid #ef4444;">
+                <div class="stat-label" style="margin-bottom: 0.5rem;">📝 Description</div>
+                <div style="color: #d1d5db; font-size: 0.95rem; line-height: 1.6;">{{ event.description }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Update Section -->
+    <div class="detail-card" x-data="{ currentStatus: '{{ event.status }}' }">
+        <div class="card-header">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">Update Status</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                {% for status_value, status_label in event.STATUS_CHOICES %}
+                <button hx-post="{% url 'admin_event_status_update' event.id %}"
+                        hx-vals='{"status": "{{ status_value }}"}'
+                        hx-target="#event-status"
+                        hx-swap="innerHTML"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        @click="currentStatus = '{{ status_value }}'"
+                        hx-on="htmx:afterSettle: location.reload()"
+                        :class="currentStatus === '{{ status_value }}' ? 'active' : ''"
+                        class="status-btn">
+                    {{ status_label }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Registered Participants -->
+    <div class="detail-card">
+        <div class="card-header">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">Registered Participants ({{ registrations|length }})</h3>
+        </div>
+        <div class="card-body">
+            {% if registrations %}
+            <div class="table-container">
+                <div class="table-row table-header" style="grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr;">
+                    <div>Name</div>
+                    <div>Belt Rank</div>
+                    <div>Weight Class</div>
+                    <div>Registered At</div>
+                    <div>Status</div>
+                </div>
+                {% for reg in registrations %}
+                <div class="table-row" style="grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr;">
+                    <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">
+                        {{ reg.trainee.profile.user.get_full_name|default:reg.trainee.profile.user.username }}
+                    </div>
+                    <div>
+                        <span style="padding: 0.25rem 0.75rem; background: rgba(107, 114, 128, 0.2); color: #d1d5db; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                            {{ reg.trainee.get_belt_rank_display }}
+                        </span>
+                    </div>
+                    <div style="color: #9ca3af; font-size: 0.85rem;">{{ reg.trainee.weight_class }}</div>
+                    <div style="color: #9ca3af; font-size: 0.85rem;">{{ reg.registered_at|date:"M d, Y H:i" }}</div>
+                    <div>
+                        <span style="padding: 0.25rem 0.75rem; {% if reg.status == 'registered' %}background: rgba(16, 185, 129, 0.2); color: #10b981;{% elif reg.status == 'cancelled' %}background: rgba(239, 68, 68, 0.2); color: #ef4444;{% else %}background: rgba(107, 114, 128, 0.2); color: #9ca3af;{% endif %} border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                            {{ reg.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+                <h4 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">No participants yet</h4>
+                <p style="color: #9ca3af; margin: 0;">Participants will appear here once they register.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Scheduled Matches -->
+    <div class="detail-card">
+        <div class="card-header">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0;">Scheduled Matches ({{ matches|length }})</h3>
+        </div>
+        <div class="card-body">
+            {% if matches %}
+            <div class="table-container">
+                <div class="table-row table-header" style="grid-template-columns: 2fr auto 2fr 1.5fr 1fr;">
+                    <div>Competitor 1</div>
+                    <div style="text-align: center;">VS</div>
+                    <div>Competitor 2</div>
+                    <div>Scheduled Time</div>
+                    <div>Status</div>
+                </div>
+                {% for match in matches %}
+                <div class="table-row" style="grid-template-columns: 2fr auto 2fr 1.5fr 1fr;">
+                    <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">
+                        {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
+                    </div>
+                    <div style="text-align: center; color: #ef4444; font-weight: 800;">VS</div>
+                    <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">
+                        {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
+                    </div>
+                    <div style="color: #9ca3af; font-size: 0.85rem;">{{ match.scheduled_time|date:"M d, Y H:i" }}</div>
+                    <div>
+                        <span style="padding: 0.25rem 0.75rem; {% if match.status == 'scheduled' %}background: rgba(59, 130, 246, 0.2); color: #60a5fa;{% elif match.status == 'ongoing' %}background: rgba(245, 158, 11, 0.2); color: #fbbf24;{% elif match.status == 'completed' %}background: rgba(16, 185, 129, 0.2); color: #10b981;{% else %}background: rgba(107, 114, 128, 0.2); color: #9ca3af;{% endif %} border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                            {{ match.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⚔️</div>
+                <h4 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">No matches scheduled</h4>
+                <p style="color: #9ca3af; margin: 0;">Matches will appear here once they are created.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

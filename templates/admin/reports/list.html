@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900">Generate Reports</h2>
+            <p class="text-sm text-gray-500 mt-1">View membership statistics, financial summaries, and event participation</p>
+        </div>
+    </div>
+
+    <!-- Report Selection Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Report Type -->
+                <div>
+                    <label for="report_type" class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                    <select name="report_type" 
+                            id="report_type"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            x-data
+                            x-on:change="$refs.eventSelect.style.display = $event.target.value === 'event' ? 'block' : 'none'; $refs.dateRange.style.display = $event.target.value === 'event' ? 'none' : 'flex';">
+                        <option value="">Select Report Type</option>
+                        <option value="membership" {% if report_type == 'membership' %}selected{% endif %}>Membership Statistics</option>
+                        <option value="financial" {% if report_type == 'financial' %}selected{% endif %}>Financial Summary</option>
+                        <option value="event" {% if report_type == 'event' %}selected{% endif %}>Event Participation</option>
+                    </select>
+                </div>
+
+                <!-- Date Range (for membership and financial) -->
+                <div x-ref="dateRange" class="contents" style="{% if report_type == 'event' %}display: none;{% endif %}">
+                    <div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <input type="date" 
+                               name="start_date" 
+                               id="start_date"
+                               value="{{ default_start_date }}"
+                               class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <input type="date" 
+                               name="end_date" 
+                               id="end_date"
+                               value="{{ default_end_date }}"
+                               class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Event Selection (for event report) -->
+                <div x-ref="eventSelect" style="{% if report_type != 'event' %}display: none;{% endif %}">
+                    <label for="event_id" class="block text-sm font-medium text-gray-700 mb-2">Select Event</label>
+                    <select name="event_id" 
+                            id="event_id"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Event</option>
+                        {% for event in events %}
+                        <option value="{{ event.id }}" {% if report_data.event.id == event.id %}selected{% endif %}>
+                            {{ event.name }} ({{ event.event_date }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Generate Button -->
+                <div class="flex items-end">
+                    <button type="submit" 
+                            class="w-full px-6 py-3 min-h-[44px] text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if report_data %}
+    <!-- Report Results -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Export Buttons -->
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">
+                {% if report_type == 'membership' %}Membership Report{% endif %}
+                {% if report_type == 'financial' %}Financial Report{% endif %}
+                {% if report_type == 'event' %}Event Report: {{ report_data.event.name }}{% endif %}
+            </h3>
+            <div class="flex gap-2">
+                <a href="{% url 'admin_reports_export' %}?report_type={{ report_type }}&format=pdf{% if report_type != 'event' %}&start_date={{ report_data.start_date }}&end_date={{ report_data.end_date }}{% else %}&event_id={{ report_data.event.id }}{% endif %}"
+                   class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export PDF
+                </a>
+                <a href="{% url 'admin_reports_export' %}?report_type={{ report_type }}&format=csv{% if report_type != 'event' %}&start_date={{ report_data.start_date }}&end_date={{ report_data.end_date }}{% else %}&event_id={{ report_data.event.id }}{% endif %}"
+                   class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export CSV
+                </a>
+            </div>
+        </div>
+
+        {% if report_type == 'membership' %}
+        <!-- Membership Report Content -->
+        <div class="space-y-6">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-600">{{ report_data.total_members }}</p>
+                    <p class="text-sm text-gray-600">Total Members</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-green-600">{{ report_data.active_members }}</p>
+                    <p class="text-sm text-gray-600">Active</p>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-yellow-600">{{ report_data.inactive_members }}</p>
+                    <p class="text-sm text-gray-600">Inactive</p>
+                </div>
+                <div class="bg-red-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-red-600">{{ report_data.suspended_members }}</p>
+                    <p class="text-sm text-gray-600">Suspended</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-purple-600">{{ report_data.new_members }}</p>
+                    <p class="text-sm text-gray-600">New (Period)</p>
+                </div>
+            </div>
+            
+            <!-- Belt Rank Breakdown -->
+            {% if report_data.members_by_belt %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Members by Belt Rank</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belt Rank</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.members_by_belt %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.belt_rank|title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Weight Class Breakdown -->
+            {% if report_data.members_by_weight_class %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Members by Weight Class</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.members_by_weight_class %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.weight_class }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if report_type == 'financial' %}
+        <!-- Financial Report Content -->
+        <div class="space-y-6">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-green-600">₱{{ report_data.total_revenue }}</p>
+                    <p class="text-sm text-gray-600">Total Revenue</p>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-yellow-600">₱{{ report_data.pending_amount }}</p>
+                    <p class="text-sm text-gray-600">Pending</p>
+                </div>
+                <div class="bg-red-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-red-600">₱{{ report_data.overdue_amount }}</p>
+                    <p class="text-sm text-gray-600">Overdue</p>
+                </div>
+            </div>
+            
+            <!-- Revenue by Type -->
+            {% if report_data.payments_by_type %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Revenue by Payment Type</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.payments_by_type %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.payment_type|title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{{ item.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Outstanding Balances -->
+            {% if report_data.outstanding_balances %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Outstanding Balances</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trainee</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.outstanding_balances %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ item.trainee__profile__user__first_name }} {{ item.trainee__profile__user__last_name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">₱{{ item.total_outstanding }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if report_type == 'event' %}
+        <!-- Event Report Content -->
+        <div class="space-y-6">
+            <!-- Event Info -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Date</p>
+                        <p class="font-medium">{{ report_data.event.event_date }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Location</p>
+                        <p class="font-medium">{{ report_data.event.location }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="font-medium">{{ report_data.event.status|title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Max Participants</p>
+                        <p class="font-medium">{{ report_data.event.max_participants }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-600">{{ report_data.total_registrations }}</p>
+                    <p class="text-sm text-gray-600">Registrations</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-purple-600">{{ report_data.matches_summary.total }}</p>
+                    <p class="text-sm text-gray-600">Total Matches</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-green-600">{{ report_data.matches_summary.completed }}</p>
+                    <p class="text-sm text-gray-600">Completed</p>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-yellow-600">{{ report_data.matches_summary.scheduled }}</p>
+                    <p class="text-sm text-gray-600">Scheduled</p>
+                </div>
+            </div>
+            
+            <!-- Participants by Belt -->
+            {% if report_data.participants_by_belt %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Participants by Belt Rank</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belt Rank</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.participants_by_belt %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.trainee__belt_rank|default:"Unknown"|title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Participants by Weight Class -->
+            {% if report_data.participants_by_weight_class %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-3">Participants by Weight Class</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in report_data.participants_by_weight_class %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.trainee__weight_class|default:"Unknown" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

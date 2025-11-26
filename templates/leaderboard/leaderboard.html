@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Leaderboard - {{ timeframe }}{% endblock %}
+
+{% block content %}
+<style>
+    .leaderboard-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.2);
+    }
+
+    .filter-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .filter-btn:not(.active) {
+        background: rgba(255, 255, 255, 0.05);
+        color: #9ca3af;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .filter-btn:not(.active):hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .leaderboard-row {
+        display: grid;
+        grid-template-columns: 80px 1fr 140px 120px;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .leaderboard-row:hover {
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .rank-badge {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0 auto;
+    }
+
+    .rank-1 { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #1a1a1a; }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); color: #1a1a1a; }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%); color: #1a1a1a; }
+    .rank-other { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .belt-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .points-display {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .points-number {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .leaderboard-row {
+            grid-template-columns: 60px 1fr;
+            gap: 1rem;
+        }
+        .points-col, .action-col {
+            grid-column: 2;
+        }
+    }
+</style>
+
+<div class="leaderboard-container">
+    <!-- Header -->
+    <div style="margin-bottom: 3rem;">
+        <h1 class="gradient-text" style="font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0;">🏆 Leaderboard</h1>
+        <p style="font-size: 1rem; color: #9ca3af; margin: 0;">{{ timeframe }} Rankings - Compete for Glory</p>
+    </div>
+
+    <!-- Timeframe Filter -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap;">
+        <a href="{% url 'leaderboard_all_time' %}" 
+           class="filter-btn {% if timeframe_key == 'all_time' %}active{% endif %}">
+            ⏳ All Time
+        </a>
+        <a href="{% url 'leaderboard_yearly' %}" 
+           class="filter-btn {% if timeframe_key == 'yearly' %}active{% endif %}">
+            📅 Yearly
+        </a>
+        <a href="{% url 'leaderboard_monthly' %}" 
+           class="filter-btn {% if timeframe_key == 'monthly' %}active{% endif %}">
+            📆 Monthly
+        </a>
+    </div>
+
+    {% if leaderboards %}
+    <!-- Leaderboard Table -->
+    <div class="glass-card" style="overflow: hidden;">
+        {% for entry in leaderboards %}
+        <div class="leaderboard-row">
+            <!-- Rank -->
+            <div>
+                <div class="rank-badge {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    {% if entry.rank == 1 %}🥇{% elif entry.rank == 2 %}🥈{% elif entry.rank == 3 %}🥉{% else %}{{ entry.rank }}{% endif %}
+                </div>
+            </div>
+
+            <!-- Trainee Info -->
+            <div style="display: flex; gap: 1rem; align-items: center; min-width: 0;">
+                <div class="avatar">
+                    {{ entry.trainee.profile.user.get_full_name|default:entry.trainee.profile.user.username|first|upper }}
+                </div>
+                <div style="min-width: 0; flex: 1;">
+                    <div style="font-weight: 700; color: #fff; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ entry.trainee.profile.user.get_full_name|default:entry.trainee.profile.user.username }}
+                    </div>
+                    <div style="margin-top: 0.3rem;">
+                        {% if entry.belt_rank == 'white' %}
+                            <span class="belt-badge" style="background: #d3d3d3; color: #333;">⚪ White</span>
+                        {% elif entry.belt_rank == 'yellow' %}
+                            <span class="belt-badge" style="background: #ffd700; color: #333;">🟡 Yellow</span>
+                        {% elif entry.belt_rank == 'orange' %}
+                            <span class="belt-badge" style="background: #ff9800; color: white;">🟠 Orange</span>
+                        {% elif entry.belt_rank == 'green' %}
+                            <span class="belt-badge" style="background: #4caf50; color: white;">🟢 Green</span>
+                        {% elif entry.belt_rank == 'blue' %}
+                            <span class="belt-badge" style="background: #2196f3; color: white;">🔵 Blue</span>
+                        {% elif entry.belt_rank == 'brown' %}
+                            <span class="belt-badge" style="background: #8d6e63; color: white;">🟤 Brown</span>
+                        {% elif entry.belt_rank == 'black' %}
+                            <span class="belt-badge" style="background: #1a1a1a; color: white;">⚫ Black</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Points -->
+            <div class="points-col">
+                <div class="points-display">
+                    <div class="points-number">{{ entry.points }}</div>
+                    <div style="font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; margin-top: 0.2rem; letter-spacing: 1px;">Points</div>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <div class="action-col" style="text-align: right;">
+                <a href="{% url 'trainee_profile_points' entry.trainee.id %}" class="action-btn">
+                    👤 View Profile
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🏅</div>
+        <h5 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">No Data Available</h5>
+        <p style="color: #9ca3af; margin: 0; font-size: 1rem;">Matches and competitions will populate the leaderboard.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

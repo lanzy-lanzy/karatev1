@@ -1,0 +1,101 @@
+{% load trainee_tags %}
+{% is_deadline_passed event as deadline_passed %}
+
+<div id="event-register-{{ event.id }}">
+    {% if is_registered %}
+        <div class="registered-badge">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            ✓ Successfully Registered
+        </div>
+    {% elif deadline_passed %}
+        <div class="disabled-badge">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            🔒 Registration Closed
+        </div>
+    {% elif event.is_full %}
+        <div class="disabled-badge">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            ⚠️ Event Full
+        </div>
+    {% elif event.status == 'open' %}
+        <button hx-post="{% url 'trainee_event_register' event.id %}"
+                hx-target="#event-register-{{ event.id }}"
+                hx-swap="outerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                class="register-btn">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            Register Now
+        </button>
+    {% else %}
+        <div class="disabled-badge">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+            </svg>
+            Not Available
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .register-btn {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .register-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+    }
+
+    .registered-badge {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .disabled-badge {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: rgba(107, 114, 128, 0.2);
+        color: #9ca3af;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+</style>

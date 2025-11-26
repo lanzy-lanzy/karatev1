@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Payment History - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Payments History{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Pending Payments Section (Highlighted) -->
+    {% if pending_payments %}
+    <div class="bg-yellow-50 rounded-lg shadow-sm border border-yellow-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-yellow-200 bg-yellow-100">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-yellow-800">Pending Payments</h3>
+            </div>
+            <p class="text-sm text-yellow-700 mt-1">Please settle these payments at your earliest convenience</p>
+        </div>
+        
+        <!-- Mobile Card View -->
+        <div class="lg:hidden divide-y divide-yellow-200">
+            {% for payment in pending_payments %}
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-lg font-bold text-gray-900">₱{{ payment.amount }}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if payment.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif payment.status == 'overdue' %}bg-red-100 text-red-800{% endif %}">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-sm font-medium text-gray-900">{{ payment.get_payment_type_display }}</p>
+                <p class="text-sm text-gray-500">{{ payment.payment_date|date:"M d, Y" }}</p>
+                {% if payment.notes %}
+                <p class="text-sm text-gray-500 mt-1">{{ payment.notes }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-yellow-200">
+                <thead class="bg-yellow-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-yellow-50 divide-y divide-yellow-200">
+                    {% for payment in pending_payments %}
+                    <tr class="hover:bg-yellow-100 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.payment_date|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.get_payment_type_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                           ₱{{ payment.amount }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                               {% if payment.status == 'pending' %}bg-yellow-100 text-yellow-800
+                               {% elif payment.status == 'overdue' %}bg-red-100 text-red-800{% endif %}">
+                               {{ payment.get_status_display }}
+                           </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                            {{ payment.notes|default:"-" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Payment History Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Payment History</h3>
+            <p class="text-sm text-gray-500">All your payment records</p>
+        </div>
+        
+        {% if other_payments %}
+        <!-- Mobile Card View -->
+        <div class="lg:hidden divide-y divide-gray-200">
+            {% for payment in other_payments %}
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-lg font-bold text-gray-900">₱{{ payment.amount }}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if payment.status == 'completed' %}bg-green-100 text-green-800
+                        {% elif payment.status == 'cancelled' %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-sm font-medium text-gray-900">{{ payment.get_payment_type_display }}</p>
+                <p class="text-sm text-gray-500">{{ payment.payment_date|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-500">{{ payment.get_payment_method_display }}</p>
+                {% if payment.notes %}
+                <p class="text-sm text-gray-500 mt-1">{{ payment.notes }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for payment in other_payments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.payment_date|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.get_payment_type_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ payment.get_payment_method_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                           ₱{{ payment.amount }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                               {% if payment.status == 'completed' %}bg-green-100 text-green-800
+                               {% elif payment.status == 'cancelled' %}bg-gray-100 text-gray-800{% endif %}">
+                               {{ payment.get_status_display }}
+                           </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                            {{ payment.notes|default:"-" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif not pending_payments %}
+        <div class="p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No payment history</h3>
+            <p class="mt-1 text-sm text-gray-500">Your payment records will appear here.</p>
+        </div>
+        {% else %}
+        <div class="p-6 text-center text-sm text-gray-500">
+            No completed payments yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

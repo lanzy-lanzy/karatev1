@@ -1,0 +1,576 @@
+ {% extends "base.html" %}
+
+{% block title %}Upcoming Events - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Upcoming Events{% endblock %}
+
+{% block content %}
+<style>
+    /* Alpine.js cloak */
+    [x-cloak] { display: none !important; }
+
+    /* Override any Tailwind conflicts */
+    .events-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+        min-height: 100vh;
+        padding: 2rem;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .events-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    /* Only apply grid display when visible */
+    .events-grid-container[style*="display: none"] {
+        display: none !important;
+    }
+
+    .events-grid-container:not([style*="display: none"]) {
+        display: grid !important;
+    }
+
+    @media (max-width: 1200px) {
+        .events-grid-container:not([style*="display: none"]) {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .events-grid-container:not([style*="display: none"]) {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .view-toggle-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        color: #9ca3af;
+    }
+
+    .view-toggle-btn.active {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .event-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .event-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .event-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .event-card:hover::before {
+        opacity: 1;
+    }
+
+    .event-header {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .event-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .event-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-open { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .status-closed { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .status-ongoing { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .status-completed { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+
+    .event-body {
+        padding: 1.25rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 0.75rem;
+    }
+
+    .info-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .info-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: rgba(239, 68, 68, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ef4444;
+        flex-shrink: 0;
+    }
+
+    .info-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .info-label {
+        font-size: 0.65rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.2rem;
+    }
+
+    .info-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .event-description {
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border-left: 3px solid #ef4444;
+        margin-bottom: 1rem;
+        flex-shrink: 0;
+    }
+
+    .event-description p {
+        color: #d1d5db;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .deadline-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .deadline-info.active {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .register-btn {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        margin-top: auto;
+    }
+
+    .register-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    }
+
+    .registered-badge, .disabled-badge {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: auto;
+    }
+
+    .registered-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .disabled-badge {
+        background: rgba(107, 114, 128, 0.2);
+        color: #9ca3af;
+        border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .progress-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.4rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+        border-radius: 2px;
+        transition: width 0.5s ease;
+    }
+
+    /* Table View Styles */
+    .table-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .table-row:hover {
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table-header:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 1100px) {
+        .table-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .view-toggle {
+            width: 100%;
+        }
+        .view-toggle-btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+</style>
+
+<div class="events-container" x-data="{ viewMode: 'cards' }">
+    <!-- Page Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+            <h1 class="gradient-text" style="font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 2.5rem;">🏆</span> Upcoming Events
+            </h1>
+            <p style="font-size: 1rem; color: #9ca3af; margin: 0;">Browse and register for upcoming competitions and tournaments</p>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button @click="viewMode = 'cards'" 
+                    :class="viewMode === 'cards' ? 'active' : ''"
+                    class="view-toggle-btn">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+                Cards
+            </button>
+            <button @click="viewMode = 'table'" 
+                    :class="viewMode === 'table' ? 'active' : ''"
+                    class="view-toggle-btn">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                Table
+            </button>
+        </div>
+    </div>
+
+    {% if events %}
+        <!-- Cards View -->
+        <div x-show="viewMode === 'cards'" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             class="events-grid-container">
+            {% for event in events %}
+            <div class="event-card">
+                <!-- Event Header -->
+                <div class="event-header">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0;">
+                            <div class="event-icon">🥋</div>
+                            <span style="font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ event.name }}</span>
+                        </div>
+                        <span class="status-badge status-{{ event.status }}" style="flex-shrink: 0;">
+                            {% if event.status == 'open' %}
+                                <span style="width: 6px; height: 6px; background: white; border-radius: 50%; display: inline-block;"></span>
+                                Open
+                            {% elif event.status == 'closed' %}
+                                🔒 Closed
+                            {% elif event.status == 'ongoing' %}
+                                ⚡ Live
+                            {% else %}
+                                ✓ Done
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Event Body -->
+                <div class="event-body">
+                    <!-- Compact Info Items -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #ef4444; flex-shrink: 0;">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff;">{{ event.event_date|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #ef4444; flex-shrink: 0;">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ event.location }}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #ef4444; flex-shrink: 0;">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">{{ event.participant_count }}/{{ event.max_participants }}</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {% widthratio event.participant_count event.max_participants 100 %}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compact Deadline -->
+                    {% load trainee_tags %}
+                    {% is_deadline_passed event as deadline_passed %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: {% if deadline_passed %}rgba(239, 68, 68, 0.1){% else %}rgba(16, 185, 129, 0.1){% endif %}; border-radius: 8px; border: 1px solid {% if deadline_passed %}rgba(239, 68, 68, 0.2){% else %}rgba(16, 185, 129, 0.2){% endif %}; margin-bottom: 0.75rem;">
+                        <svg style="width: 14px; height: 14px; color: {% if deadline_passed %}#ef4444{% else %}#10b981{% endif %}; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 0.7rem; font-weight: 700; color: {% if deadline_passed %}#ef4444{% else %}#10b981{% endif %};">
+                                Deadline: {{ event.registration_deadline|date:"M d" }}{% if deadline_passed %} (Closed){% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Register Button -->
+                    <div>
+                        {% include "trainee/partials/event_register_button.html" with event=event is_registered=event.id|is_in_list:registered_event_ids %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Table View -->
+        <div x-show="viewMode === 'table'" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             class="table-container">
+            <div class="table-row table-header">
+                <div>Event Name</div>
+                <div>Date</div>
+                <div>Location</div>
+                <div>Participants</div>
+                <div>Status</div>
+                <div>Action</div>
+            </div>
+            {% for event in events %}
+            <div class="table-row">
+                <div>
+                    <div style="font-weight: 700; color: #fff; margin-bottom: 0.25rem;">{{ event.name }}</div>
+                    {% if event.description %}
+                    <div style="font-size: 0.75rem; color: #9ca3af;">{{ event.description|truncatewords:10 }}</div>
+                    {% endif %}
+                </div>
+                <div style="color: #fff; font-weight: 600; font-size: 0.9rem;">{{ event.event_date|date:"M d, Y" }}</div>
+                <div style="color: #d1d5db; font-size: 0.85rem;">{{ event.location }}</div>
+                <div>
+                    <div style="color: #fff; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem;">{{ event.participant_count }}/{{ event.max_participants }}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio event.participant_count event.max_participants 100 %}%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <span class="status-badge status-{{ event.status }}">
+                        {% if event.status == 'open' %}
+                            <span style="width: 6px; height: 6px; background: white; border-radius: 50%; display: inline-block;"></span>
+                            {{ event.get_status_display }}
+                        {% elif event.status == 'closed' %}
+                            🔒 {{ event.get_status_display }}
+                        {% elif event.status == 'ongoing' %}
+                            ⚡ {{ event.get_status_display }}
+                        {% else %}
+                            ✓ {{ event.get_status_display }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div>
+                    {% load trainee_tags %}
+                    {% include "trainee/partials/event_register_button.html" with event=event is_registered=event.id|is_in_list:registered_event_ids %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem;">📅</div>
+            <h3 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem;">No Upcoming Events</h3>
+            <p style="color: #9ca3af; margin: 0; font-size: 1rem;">Check back later for new competitions and tournaments.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

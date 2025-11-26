@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+
+{% block title %}My Matches - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}My Matches{% endblock %}
+
+{% block content %}
+<style>
+    /* Alpine.js cloak */
+    [x-cloak] { display: none !important; }
+
+    /* Override any Tailwind conflicts */
+    .matches-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+        min-height: 100vh;
+        padding: 2rem;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .matches-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    /* Only apply grid display when visible */
+    .matches-grid-container[style*="display: none"] {
+        display: none !important;
+    }
+
+    .matches-grid-container:not([style*="display: none"]) {
+        display: grid !important;
+    }
+
+    @media (max-width: 1200px) {
+        .matches-grid-container:not([style*="display: none"]) {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .matches-grid-container:not([style*="display: none"]) {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .view-toggle-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        color: #9ca3af;
+    }
+
+    .view-toggle-btn.active {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .match-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .match-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .match-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .match-card:hover::before {
+        opacity: 1;
+    }
+
+    .match-header {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .competitor-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.25rem;
+        border: 3px solid;
+        flex-shrink: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-scheduled { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .status-ongoing { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
+    .status-completed { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .status-won { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .status-lost { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+    .match-body {
+        padding: 1.25rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(239, 68, 68, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ef4444;
+        flex-shrink: 0;
+    }
+
+    .table-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .table-row:hover {
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table-header:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    @media (max-width: 1100px) {
+        .table-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .view-toggle {
+            width: 100%;
+        }
+        .view-toggle-btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="matches-container">
+    <!-- Upcoming Matches Section -->
+    <div style="margin-bottom: 4rem;" x-data="{ viewMode: 'cards' }">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+                <h2 class="section-title">
+                    <span style="font-size: 2rem;">⚔️</span> Upcoming Matches
+                </h2>
+                <p style="font-size: 1rem; color: #9ca3af; margin: 0;">Your scheduled bouts</p>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <button @click="viewMode = 'cards'" 
+                        :class="viewMode === 'cards' ? 'active' : ''"
+                        class="view-toggle-btn">
+                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                    Cards
+                </button>
+                <button @click="viewMode = 'table'" 
+                        :class="viewMode === 'table' ? 'active' : ''"
+                        class="view-toggle-btn">
+                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Table
+                </button>
+            </div>
+        </div>
+
+        {% if upcoming_matches %}
+            <!-- Cards View -->
+            <div x-show="viewMode === 'cards'" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 class="matches-grid-container">
+                {% for match in upcoming_matches %}
+                <div class="match-card">
+                    <!-- Match Header -->
+                    <div class="match-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #fff;">{{ match.event.name }}</span>
+                            <span class="status-badge status-{{ match.status }}">
+                                {% if match.status == 'scheduled' %}
+                                    📅 Scheduled
+                                {% elif match.status == 'ongoing' %}
+                                    ⚡ Live
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Competitors -->
+                        <div style="display: flex; align-items: center; justify-content: space-around; gap: 1rem;">
+                            <!-- Competitor 1 -->
+                            <div style="text-align: center; flex: 1;">
+                                {% if match.competitor1.profile.profile_image %}
+                                    <img src="{{ match.competitor1.profile.profile_image.url }}" 
+                                         alt="{{ match.competitor1.profile.user.get_full_name }}"
+                                         class="competitor-avatar" 
+                                         style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: rgba(59, 130, 246, 0.3); object-fit: cover; color: white;">
+                                {% else %}
+                                    <div class="competitor-avatar" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: rgba(59, 130, 246, 0.3); margin: 0 auto; color: white;">
+                                        {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: {% if match.competitor1 == trainee %}#3b82f6{% else %}#fff{% endif %};">
+                                    {% if match.competitor1 == trainee %}You{% else %}{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username|truncatewords:2 }}{% endif %}
+                                </div>
+                                <div style="font-size: 0.7rem; color: #9ca3af;">{{ match.competitor1.get_belt_rank_display }}</div>
+                            </div>
+
+                            <!-- VS -->
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #ef4444;">VS</div>
+
+                            <!-- Competitor 2 -->
+                            <div style="text-align: center; flex: 1;">
+                                {% if match.competitor2.profile.profile_image %}
+                                    <img src="{{ match.competitor2.profile.profile_image.url }}" 
+                                         alt="{{ match.competitor2.profile.user.get_full_name }}"
+                                         class="competitor-avatar" 
+                                         style="background: linear-gradient(135deg, #ef4444, #dc2626); border-color: rgba(239, 68, 68, 0.3); object-fit: cover; color: white;">
+                                {% else %}
+                                    <div class="competitor-avatar" style="background: linear-gradient(135deg, #ef4444, #dc2626); border-color: rgba(239, 68, 68, 0.3); margin: 0 auto; color: white;">
+                                        {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: {% if match.competitor2 == trainee %}#ef4444{% else %}#fff{% endif %};">
+                                    {% if match.competitor2 == trainee %}You{% else %}{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username|truncatewords:2 }}{% endif %}
+                                </div>
+                                <div style="font-size: 0.7rem; color: #9ca3af;">{{ match.competitor2.get_belt_rank_display }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match Body -->
+                    <div class="match-body">
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff;">{{ match.scheduled_time|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ match.event.location }}</div>
+                            </div>
+                        </div>
+
+                        {% if match.judge_assignments.all %}
+                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Judges</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                {% for assignment in match.judge_assignments.all %}
+                                <span style="font-size: 0.7rem; padding: 0.25rem 0.5rem; background: rgba(107, 114, 128, 0.2); color: #d1d5db; border-radius: 6px;">
+                                    {{ assignment.judge.profile.user.get_full_name|default:assignment.judge.profile.user.username|truncatewords:2 }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Table View -->
+            <div x-show="viewMode === 'table'" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 class="table-container">
+                <div class="table-row table-header">
+                    <div>Match</div>
+                    <div>Event</div>
+                    <div>Date & Time</div>
+                    <div>Location</div>
+                    <div>Status</div>
+                </div>
+                {% for match in upcoming_matches %}
+                <div class="table-row">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">
+                                {% if match.competitor1 == trainee %}You{% else %}{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username|truncatewords:2 }}{% endif %}
+                                <span style="color: #ef4444; margin: 0 0.5rem;">VS</span>
+                                {% if match.competitor2 == trainee %}You{% else %}{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username|truncatewords:2 }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="color: #d1d5db; font-size: 0.85rem;">{{ match.event.name }}</div>
+                    <div style="color: #fff; font-weight: 600; font-size: 0.85rem;">{{ match.scheduled_time|date:"M d, H:i" }}</div>
+                    <div style="color: #d1d5db; font-size: 0.85rem;">{{ match.event.location }}</div>
+                    <div>
+                        <span class="status-badge status-{{ match.status }}">
+                            {% if match.status == 'scheduled' %}📅 Scheduled{% elif match.status == 'ongoing' %}⚡ Live{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div style="font-size: 5rem; margin-bottom: 1.5rem;">⚔️</div>
+                <h3 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem;">No Upcoming Matches</h3>
+                <p style="color: #9ca3af; margin: 0; font-size: 1rem;">Matches will appear here once scheduled.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Past Matches Section -->
+    <div>
+        <!-- Header -->
+        <div style="margin-bottom: 2rem;">
+            <h2 class="section-title">
+                <span style="font-size: 2rem;">📜</span> Past Matches
+            </h2>
+            <p style="font-size: 1rem; color: #9ca3af; margin: 0;">Your match history and results</p>
+        </div>
+
+        {% if past_matches %}
+            <!-- Cards View -->
+            <div class="matches-grid-container">
+                {% for match in past_matches %}
+                <div class="match-card">
+                    <!-- Match Header -->
+                    <div class="match-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #fff;">{{ match.event.name }}</span>
+                            <span class="status-badge {% if match.winner == trainee %}status-won{% else %}status-lost{% endif %}">
+                                {% if match.winner == trainee %}
+                                    ✓ Won
+                                {% else %}
+                                    ✗ Lost
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Competitors -->
+                        <div style="display: flex; align-items: center; justify-content: space-around; gap: 1rem;">
+                            <!-- Competitor 1 -->
+                            <div style="text-align: center; flex: 1;">
+                                {% if match.competitor1.profile.profile_image %}
+                                    <img src="{{ match.competitor1.profile.profile_image.url }}" 
+                                         alt="{{ match.competitor1.profile.user.get_full_name }}"
+                                         class="competitor-avatar" 
+                                         style="background: {% if match.winner == match.competitor1 %}linear-gradient(135deg, #10b981, #059669){% else %}linear-gradient(135deg, #6b7280, #4b5563){% endif %}; border-color: {% if match.winner == match.competitor1 %}rgba(16, 185, 129, 0.3){% else %}rgba(107, 114, 128, 0.3){% endif %}; object-fit: cover; color: white;">
+                                {% else %}
+                                    <div class="competitor-avatar" style="background: {% if match.winner == match.competitor1 %}linear-gradient(135deg, #10b981, #059669){% else %}linear-gradient(135deg, #6b7280, #4b5563){% endif %}; border-color: {% if match.winner == match.competitor1 %}rgba(16, 185, 129, 0.3){% else %}rgba(107, 114, 128, 0.3){% endif %}; margin: 0 auto; color: white;">
+                                        {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: {% if match.competitor1 == trainee %}#3b82f6{% else %}#fff{% endif %};">
+                                    {% if match.competitor1 == trainee %}You{% else %}{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username|truncatewords:2 }}{% endif %}
+                                </div>
+                                {% if match.winner == match.competitor1 %}
+                                <div style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(16, 185, 129, 0.2); color: #10b981; border-radius: 6px; display: inline-block; margin-top: 0.25rem;">Winner</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- VS -->
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #6b7280;">VS</div>
+
+                            <!-- Competitor 2 -->
+                            <div style="text-align: center; flex: 1;">
+                                {% if match.competitor2.profile.profile_image %}
+                                    <img src="{{ match.competitor2.profile.profile_image.url }}" 
+                                         alt="{{ match.competitor2.profile.user.get_full_name }}"
+                                         class="competitor-avatar" 
+                                         style="background: {% if match.winner == match.competitor2 %}linear-gradient(135deg, #10b981, #059669){% else %}linear-gradient(135deg, #6b7280, #4b5563){% endif %}; border-color: {% if match.winner == match.competitor2 %}rgba(16, 185, 129, 0.3){% else %}rgba(107, 114, 128, 0.3){% endif %}; object-fit: cover; color: white;">
+                                {% else %}
+                                    <div class="competitor-avatar" style="background: {% if match.winner == match.competitor2 %}linear-gradient(135deg, #10b981, #059669){% else %}linear-gradient(135deg, #6b7280, #4b5563){% endif %}; border-color: {% if match.winner == match.competitor2 %}rgba(16, 185, 129, 0.3){% else %}rgba(107, 114, 128, 0.3){% endif %}; margin: 0 auto; color: white;">
+                                        {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: {% if match.competitor2 == trainee %}#ef4444{% else %}#fff{% endif %};">
+                                    {% if match.competitor2 == trainee %}You{% else %}{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username|truncatewords:2 }}{% endif %}
+                                </div>
+                                {% if match.winner == match.competitor2 %}
+                                <div style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(16, 185, 129, 0.2); color: #10b981; border-radius: 6px; display: inline-block; margin-top: 0.25rem;">Winner</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match Body -->
+                    <div class="match-body">
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff;">{{ match.scheduled_time|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ match.event.location }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div style="font-size: 5rem; margin-bottom: 1.5rem;">📜</div>
+                <h3 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem;">No Match History</h3>
+                <p style="color: #9ca3af; margin: 0; font-size: 1rem;">Your completed matches will appear here.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

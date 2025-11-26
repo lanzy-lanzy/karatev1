@@ -1,0 +1,23 @@
+[project]
+name = "karate"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2.8",
+    "django-shortcuts>=1.6",
+    "pillow>=12.0.0",
+    "reportlab>=4.4.5",
+    "hypothesis>=6.0.0",
+]
+
+[project.scripts]
+uvmm = "manage:makemigrations"
+uvm = "manage:migrate"
+uvr = "manage:runserver"
+
+[tool.uv.scripts]
+uvmm = "python manage.py makemigrations"
+uvm = "python manage.py migrate"
+uvr = "python manage.py runserver"

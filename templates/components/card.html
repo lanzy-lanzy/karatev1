@@ -1,0 +1,60 @@
+{% comment %}
+Card Component
+Usage:
+{% include "components/card.html" with title="Card Title" subtitle="Optional subtitle" %}
+    Content goes here
+{% endinclude %}
+
+Or use as a block:
+<div class="card">...</div>
+{% endcomment %}
+
+<!-- Metric Card (for dashboard stats) -->
+{% if metric %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer min-h-[120px]"
+     {% if href %}onclick="window.location='{{ href }}'"{% endif %}>
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm font-medium text-gray-500">{{ title }}</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">{{ value }}</p>
+            {% if subtitle %}
+            <p class="text-sm text-gray-500 mt-1">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        {% if icon %}
+        <div class="w-12 h-12 bg-{{ color|default:'blue' }}-100 rounded-lg flex items-center justify-center">
+            {{ icon|safe }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+
+<!-- Standard Card -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    {% if title %}
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+            {% if subtitle %}
+            <p class="text-sm text-gray-500 mt-1">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        {% if actions %}
+        <div class="flex items-center space-x-2">
+            {{ actions|safe }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="p-6">
+        {{ content|safe }}
+        {% block card_content %}{% endblock %}
+    </div>
+    {% if footer %}
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>
+{% endif %}

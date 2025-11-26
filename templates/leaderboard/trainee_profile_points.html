@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ trainee.profile.user.get_full_name }} - Points & Progress{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.15);
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        color: #ef4444;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .back-link:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: translateX(-5px);
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 3rem;
+        flex-shrink: 0;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .belt-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+        letter-spacing: 1px;
+    }
+
+    .progress-bar-container {
+        height: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 7px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+        border-radius: 7px;
+        transition: width 1s ease;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    .promotion-item {
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        border-left: 4px solid #06b6d4;
+        transition: all 0.3s ease;
+    }
+
+    .promotion-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateX(5px);
+    }
+
+    .info-box {
+        padding: 1.25rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .content-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Back Link -->
+    <a href="{% url 'leaderboard_all_time' %}" class="back-link">
+        ← Back to Leaderboard
+    </a>
+
+    <!-- Profile Header -->
+    <div style="display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 3rem; flex-wrap: wrap;">
+        <div class="profile-avatar">
+            {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username|first|upper }}
+        </div>
+        <div style="flex: 1;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: #fff; margin: 0 0 1rem 0;">
+                {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}
+            </h1>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <span class="belt-badge" style="background: 
+                    {% if trainee.get_belt_rank_display == 'White' %}#d3d3d3
+                    {% elif trainee.get_belt_rank_display == 'Yellow' %}#ffd700
+                    {% elif trainee.get_belt_rank_display == 'Orange' %}#ff9800
+                    {% elif trainee.get_belt_rank_display == 'Green' %}#4caf50
+                    {% elif trainee.get_belt_rank_display == 'Blue' %}#2196f3
+                    {% elif trainee.get_belt_rank_display == 'Brown' %}#8d6e63
+                    {% elif trainee.get_belt_rank_display == 'Black' %}#1a1a1a
+                    {% endif %}; color: {% if trainee.get_belt_rank_display == 'White' or trainee.get_belt_rank_display == 'Yellow' %}#333{% else %}white{% endif %};">
+                    🥋 {{ trainee.get_belt_rank_display }} Belt
+                </span>
+                <span style="color: #9ca3af; font-size: 0.95rem;">✨ Active Member</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    {% if points %}
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-label">Total Points</div>
+            <div class="stat-value">{{ points.total_points }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">Wins</div>
+            <div class="stat-value">{{ points.wins }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚔️</div>
+            <div class="stat-label">Losses</div>
+            <div class="stat-value">{{ points.losses }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-label">Events</div>
+            <div class="stat-value">{{ points.events_participated }}</div>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 2rem; background: rgba(255, 255, 255, 0.03); border-radius: 16px; border: 2px dashed rgba(255, 255, 255, 0.1); margin-bottom: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+        <h5 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">No Data Yet</h5>
+        <p style="color: #9ca3af; margin: 0; font-size: 1rem;">Compete in events to earn points and advance belts</p>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Grid -->
+    <div class="content-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <!-- Belt Progress Card -->
+        <div class="glass-card" style="overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a1a; padding: 2rem;">
+                <h5 style="font-size: 1.3rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🎖️</span> Belt Rank Progress
+                </h5>
+                <p style="font-size: 0.9rem; color: rgba(26, 26, 26, 0.7); margin: 0.5rem 0 0 0;">Journey to next rank</p>
+            </div>
+            <div style="padding: 2rem;">
+                {% if next_threshold %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Current</div>
+                            <span class="belt-badge" style="background: 
+                                {% if trainee.get_belt_rank_display == 'White' %}#d3d3d3
+                                {% elif trainee.get_belt_rank_display == 'Yellow' %}#ffd700
+                                {% elif trainee.get_belt_rank_display == 'Orange' %}#ff9800
+                                {% elif trainee.get_belt_rank_display == 'Green' %}#4caf50
+                                {% elif trainee.get_belt_rank_display == 'Blue' %}#2196f3
+                                {% elif trainee.get_belt_rank_display == 'Brown' %}#8d6e63
+                                {% elif trainee.get_belt_rank_display == 'Black' %}#1a1a1a
+                                {% endif %}; color: {% if trainee.get_belt_rank_display == 'White' or trainee.get_belt_rank_display == 'Yellow' %}#333{% else %}white{% endif %};">
+                                {{ trainee.get_belt_rank_display }}
+                            </span>
+                        </div>
+                        <span style="color: #10b981; font-size: 1.5rem;">→</span>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Next Target</div>
+                            <span class="belt-badge" style="background: 
+                                {% if next_threshold.get_belt_rank_display == 'White' %}#d3d3d3
+                                {% elif next_threshold.get_belt_rank_display == 'Yellow' %}#ffd700
+                                {% elif next_threshold.get_belt_rank_display == 'Orange' %}#ff9800
+                                {% elif next_threshold.get_belt_rank_display == 'Green' %}#4caf50
+                                {% elif next_threshold.get_belt_rank_display == 'Blue' %}#2196f3
+                                {% elif next_threshold.get_belt_rank_display == 'Brown' %}#8d6e63
+                                {% elif next_threshold.get_belt_rank_display == 'Black' %}#1a1a1a
+                                {% endif %}; color: {% if next_threshold.get_belt_rank_display == 'White' or next_threshold.get_belt_rank_display == 'Yellow' %}#333{% else %}white{% endif %};">
+                                {{ next_threshold.get_belt_rank_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if points %}
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <span style="font-weight: 700; color: #fff; font-size: 0.95rem;">Progress</span>
+                            <span style="font-size: 1.5rem; font-weight: 800; color: #fbbf24;">{{ progress_percentage }}%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: {{ progress_percentage }}%;"></div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                                <div class="stat-label">Current</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">{{ points.total_points }}</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                                <div class="stat-label">Required</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">{{ next_threshold.points_required }}</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                                <div class="stat-label">Remaining</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">{{ next_threshold.points_required|add:points.total_points|stringformat:"-d" }}</div>
+                            </div>
+                        </div>
+                        <div class="info-box" style="margin-top: 1.5rem;">
+                            <div style="font-weight: 700; color: #ef4444; font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <span>💡</span> Points Tips
+                            </div>
+                            <div style="font-size: 0.85rem; color: #fff;">
+                                Win: +30 pts | Loss: +10 pts
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 3rem 1rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05)); border-radius: 12px;">
+                    <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏆</div>
+                    <h6 style="font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0.5rem 0;">Black Belt Master</h6>
+                    <p style="color: #9ca3af; margin: 0; font-size: 0.95rem;">Highest rank achieved. Keep improving!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Promotion History Card -->
+        <div class="glass-card" style="overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 2rem;">
+                <h5 style="font-size: 1.3rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🌟</span> Promotion History
+                </h5>
+                <p style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); margin: 0.5rem 0 0 0;">Your belt rank journey</p>
+            </div>
+            <div style="padding: 2rem;">
+                {% if progress %}
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for entry in progress %}
+                    <div class="promotion-item">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <span style="background: rgba(255, 255, 255, 0.1); color: #9ca3af; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">{{ entry.get_old_belt_rank_display }}</span>
+                                <span style="color: #06b6d4; font-size: 1.2rem;">→</span>
+                                <span style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">{{ entry.get_new_belt_rank_display }}</span>
+                            </div>
+                            <span style="font-size: 0.75rem; color: #9ca3af;">{{ entry.promoted_at|date:"M d, Y" }}</span>
+                        </div>
+                        <p style="margin: 0; color: #fff; font-size: 0.9rem;">Earned <strong style="color: #06b6d4;">{{ entry.points_earned }} points</strong></p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 3rem 1rem; color: #9ca3af;">
+                    <div style="font-size: 3rem; margin-bottom: 0.75rem;">🏅</div>
+                    <p style="margin: 0; font-size: 0.95rem;">No promotions yet</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem;">Earn points to advance</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Summary -->
+    {% if points %}
+    <div class="glass-card" style="overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 2rem;">
+            <h5 style="font-size: 1.3rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📈</span> Performance Summary
+            </h5>
+            <p style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); margin: 0.5rem 0 0 0;">Last updated: {{ points.updated_at|date:"M d, Y — H:i" }}</p>
+        </div>
+        <div style="padding: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+                <div style="text-align: center;">
+                    <div class="stat-label">Win/Loss Ratio</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #06b6d4; margin-top: 0.75rem;">
+                        {% if points.losses > 0 %}
+                            {{ points.wins|add:points.losses }}
+                        {% else %}
+                            {% if points.wins > 0 %}100{% else %}0{% endif %}
+                        {% endif %}%
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="stat-label">Avg Points/Event</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #06b6d4; margin-top: 0.75rem;">
+                        {% if points.events_participated > 0 %}
+                            {{ points.total_points|add:0|add:points.events_participated|stringformat:".1f" }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="stat-label">Rank Progress</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #06b6d4; margin-top: 0.75rem;">{{ progress_percentage|default:"0" }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

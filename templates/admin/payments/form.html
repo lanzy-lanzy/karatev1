@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{% if payment %}Edit{% else %}Record{% endif %} Payment - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}{% if payment %}Edit Payment{% else %}Record New Payment{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Back Link -->
+    <div class="mb-6">
+        <a href="{% url 'admin_payments' %}" 
+           class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Payments
+        </a>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+                {% if payment %}Edit Payment Record{% else %}Record New Payment{% endif %}
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if payment %}Update the payment details below.{% else %}Fill in the details to record a new payment.{% endif %}
+            </p>
+        </div>
+
+        <form method="post" 
+              class="p-6 space-y-6"
+              hx-post="{% if payment %}{% url 'admin_payment_edit' payment.id %}{% else %}{% url 'admin_payment_add' %}{% endif %}"
+              hx-target="body"
+              hx-swap="innerHTML">
+            {% csrf_token %}
+
+            <!-- Payment Information Section -->
+            <div class="space-y-6">
+                <!-- Trainee Selection -->
+                <div>
+                    <label for="id_trainee" class="block text-sm font-medium text-gray-700 mb-2">
+                        Trainee <span class="text-red-500">*</span>
+                    </label>
+                    <select name="trainee" 
+                            id="id_trainee"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.trainee.errors %}border-red-500{% endif %}"
+                            required>
+                        <option value="">Select Trainee</option>
+                        {% for trainee in trainees %}
+                        <option value="{{ trainee.id }}" {% if form.trainee.value == trainee.id|stringformat:"s" %}selected{% endif %}>
+                            {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }} - {{ trainee.get_belt_rank_display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.trainee.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.trainee.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Amount -->
+                <div>
+                    <label for="id_amount" class="block text-sm font-medium text-gray-700 mb-2">
+                        Amount (₱) <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">₱</span>
+                        </div>
+                        <input type="number" 
+                               name="amount" 
+                               id="id_amount"
+                               step="0.01"
+                               min="0.01"
+                               value="{{ form.amount.value|default:'' }}"
+                               class="w-full pl-8 pr-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.amount.errors %}border-red-500{% endif %}"
+                               placeholder="0.00"
+                               required>
+                    </div>
+                    {% if form.amount.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Payment Type -->
+                <div>
+                    <label for="id_payment_type" class="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Type <span class="text-red-500">*</span>
+                    </label>
+                    <select name="payment_type" 
+                            id="id_payment_type"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.payment_type.errors %}border-red-500{% endif %}"
+                            required>
+                        <option value="">Select Type</option>
+                        <option value="membership" {% if form.payment_type.value == 'membership' %}selected{% endif %}>Membership Fee</option>
+                        <option value="event" {% if form.payment_type.value == 'event' %}selected{% endif %}>Event Fee</option>
+                        <option value="equipment" {% if form.payment_type.value == 'equipment' %}selected{% endif %}>Equipment</option>
+                        <option value="other" {% if form.payment_type.value == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                    {% if form.payment_type.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.payment_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Payment Method -->
+                <div>
+                    <label for="id_payment_method" class="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Method <span class="text-red-500">*</span>
+                    </label>
+                    <select name="payment_method" 
+                            id="id_payment_method"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.payment_method.errors %}border-red-500{% endif %}"
+                            required>
+                        <option value="">Select Method</option>
+                        <option value="cash" {% if form.payment_method.value == 'cash' %}selected{% endif %}>Cash</option>
+                        <option value="card" {% if form.payment_method.value == 'card' %}selected{% endif %}>Credit/Debit Card</option>
+                        <option value="bank_transfer" {% if form.payment_method.value == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                        <option value="check" {% if form.payment_method.value == 'check' %}selected{% endif %}>Check</option>
+                        <option value="other" {% if form.payment_method.value == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                    {% if form.payment_method.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.payment_method.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="id_status" class="block text-sm font-medium text-gray-700 mb-2">
+                        Status <span class="text-red-500">*</span>
+                    </label>
+                    <select name="status" 
+                            id="id_status"
+                            class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.status.errors %}border-red-500{% endif %}"
+                            required>
+                        <option value="pending" {% if form.status.value == 'pending' or not form.status.value %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="overdue" {% if form.status.value == 'overdue' %}selected{% endif %}>Overdue</option>
+                        <option value="cancelled" {% if form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    {% if form.status.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    <textarea name="notes" 
+                              id="id_notes"
+                              rows="3"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if form.notes.errors %}border-red-500{% endif %}"
+                              placeholder="Optional notes about this payment...">{{ form.notes.value|default:'' }}</textarea>
+                    {% if form.notes.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'admin_payments' %}" 
+                   class="px-6 py-3 min-h-[44px] text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 min-h-[44px] text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center justify-center">
+                    <span class="htmx-indicator mr-2">
+                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                    {% if payment %}Update Payment{% else %}Record Payment{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
