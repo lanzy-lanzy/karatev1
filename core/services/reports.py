@@ -7,7 +7,7 @@ import csv
 import io
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Dict
 
 from django.db.models import Sum, Count, Q
 from django.db.models.functions import TruncMonth
@@ -25,7 +25,7 @@ class ReportService:
     Requirements: 7.1, 7.2, 7.3, 7.4
     """
     
-    def membership_report(self, start_date: date, end_date: date) -> dict[str, Any]:
+    def membership_report(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """
         Generate membership statistics report.
         Requirements: 7.1
@@ -84,7 +84,7 @@ class ReportService:
             'members_by_weight_class': members_by_weight_class,
         }
     
-    def financial_report(self, start_date: date, end_date: date) -> dict[str, Any]:
+    def financial_report(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """
         Generate financial summary report.
         Requirements: 7.2, 7.4
@@ -169,7 +169,7 @@ class ReportService:
             'outstanding_balances': outstanding_balances,
         }
     
-    def event_report(self, event_id: int) -> dict[str, Any]:
+    def event_report(self, event_id: int) -> Dict[str, Any]:
         """
         Generate event participation report.
         Requirements: 7.1, 7.2
@@ -235,7 +235,7 @@ class ReportService:
         }
 
     
-    def export_pdf(self, report_data: dict[str, Any], report_type: str) -> bytes:
+    def export_pdf(self, report_data: Dict[str, Any], report_type: str) -> bytes:
         """
         Export report as PDF.
         Requirements: 7.3
@@ -464,7 +464,7 @@ class ReportService:
         return elements
 
     
-    def export_csv(self, report_data: dict[str, Any], report_type: str) -> str:
+    def export_csv(self, report_data: Dict[str, Any], report_type: str) -> str:
         """
         Export report as CSV.
         Requirements: 7.3

@@ -22,31 +22,43 @@
                     <div class="flex-1">
                         <div class="flex items-center space-x-4">
                             <!-- Competitor 1 -->
-                            <div class="text-center">
-                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                    <span class="text-red-600 font-bold text-sm">
-                                        {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
-                                    </span>
-                                </div>
-                                <p class="text-sm font-medium text-gray-900 mt-1">
-                                    {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
-                                </p>
-                            </div>
-                            
-                            <!-- VS -->
-                            <span class="text-sm font-bold text-gray-400">VS</span>
-                            
-                            <!-- Competitor 2 -->
-                            <div class="text-center">
-                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                                    <span class="text-blue-600 font-bold text-sm">
-                                        {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
-                                    </span>
-                                </div>
-                                <p class="text-sm font-medium text-gray-900 mt-1">
-                                    {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
-                                </p>
-                            </div>
+                             <div class="text-center">
+                                 {% if match.competitor1.profile.profile_image %}
+                                     <img src="{{ match.competitor1.profile.profile_image.url }}" 
+                                          alt="{{ match.competitor1.profile.user.get_full_name }}"
+                                          class="w-10 h-10 rounded-full object-cover mx-auto border border-gray-200">
+                                 {% else %}
+                                     <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                                         <span class="text-red-600 font-bold text-sm">
+                                             {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                         </span>
+                                     </div>
+                                 {% endif %}
+                                 <p class="text-sm font-medium text-gray-900 mt-1">
+                                     {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
+                                 </p>
+                             </div>
+                             
+                             <!-- VS -->
+                             <span class="text-sm font-bold text-gray-400">VS</span>
+                             
+                             <!-- Competitor 2 -->
+                             <div class="text-center">
+                                 {% if match.competitor2.profile.profile_image %}
+                                     <img src="{{ match.competitor2.profile.profile_image.url }}" 
+                                          alt="{{ match.competitor2.profile.user.get_full_name }}"
+                                          class="w-10 h-10 rounded-full object-cover mx-auto border border-gray-200">
+                                 {% else %}
+                                     <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                         <span class="text-blue-600 font-bold text-sm">
+                                             {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                         </span>
+                                     </div>
+                                 {% endif %}
+                                 <p class="text-sm font-medium text-gray-900 mt-1">
+                                     {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
+                                 </p>
+                             </div>
                         </div>
                         
                         <p class="text-sm text-gray-500 mt-2">
@@ -102,10 +114,38 @@
                     {% for result in submitted_results %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">
-                                {{ result.match.competitor1.profile.user.get_full_name|default:result.match.competitor1.profile.user.username }}
-                                vs
-                                {{ result.match.competitor2.profile.user.get_full_name|default:result.match.competitor2.profile.user.username }}
+                            <div class="flex items-center space-x-3">
+                                <!-- Competitor 1 Image -->
+                                {% if result.match.competitor1.profile.profile_image %}
+                                    <img src="{{ result.match.competitor1.profile.profile_image.url }}" 
+                                         alt="{{ result.match.competitor1.profile.user.get_full_name }}"
+                                         class="h-8 w-8 rounded-full object-cover">
+                                {% else %}
+                                    <div class="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-red-600 font-bold text-xs">
+                                            {{ result.match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ result.match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ result.match.competitor1.profile.user.get_full_name|default:result.match.competitor1.profile.user.username }}
+                                        vs
+                                        {{ result.match.competitor2.profile.user.get_full_name|default:result.match.competitor2.profile.user.username }}
+                                    </div>
+                                </div>
+                                <!-- Competitor 2 Image -->
+                                {% if result.match.competitor2.profile.profile_image %}
+                                    <img src="{{ result.match.competitor2.profile.profile_image.url }}" 
+                                         alt="{{ result.match.competitor2.profile.user.get_full_name }}"
+                                         class="h-8 w-8 rounded-full object-cover">
+                                {% else %}
+                                    <div class="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-blue-600 font-bold text-xs">
+                                            {{ result.match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ result.match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    </div>
+                                {% endif %}
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">

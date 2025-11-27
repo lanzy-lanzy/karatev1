@@ -1,0 +1,112 @@
+{% if promotions %}
+<div class="space-y-4">
+    {% for promotion in promotions %}
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-gray-700
+                {% if promotion.promotion_type == 'admin_override' %}border-l-orange-500{% else %}border-l-green-500{% endif %}">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- Trainee Info -->
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    {% if promotion.trainee.profile.profile_image %}
+                        <img src="{{ promotion.trainee.profile.profile_image.url }}" alt="{{ promotion.trainee.profile.user.get_full_name }}" class="w-12 h-12 rounded-full object-cover">
+                    {% else %}
+                        <span class="text-white font-bold">{{ promotion.trainee.profile.user.first_name.0|upper }}{{ promotion.trainee.profile.user.last_name.0|upper }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="font-semibold text-white">{{ promotion.trainee.profile.user.get_full_name|default:promotion.trainee.profile.user.username }}</p>
+                    <p class="text-sm text-gray-400">{{ promotion.trainee.profile.user.email }}</p>
+                </div>
+            </div>
+            
+            <!-- Promotion Details -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <!-- Belt Change -->
+                <div class="text-center">
+                    <div class="flex items-center space-x-2 justify-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" 
+                              style="background-color: {% if promotion.old_belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
+                                       {% elif promotion.old_belt_rank == 'yellow' %}rgba(255, 193, 7, 0.2); color: #ffc107;
+                                       {% elif promotion.old_belt_rank == 'orange' %}rgba(255, 152, 0, 0.2); color: #ff9800;
+                                       {% elif promotion.old_belt_rank == 'green' %}rgba(76, 175, 80, 0.2); color: #4caf50;
+                                       {% elif promotion.old_belt_rank == 'blue' %}rgba(33, 150, 243, 0.2); color: #2196f3;
+                                       {% elif promotion.old_belt_rank == 'brown' %}rgba(121, 85, 72, 0.2); color: #795548;
+                                       {% elif promotion.old_belt_rank == 'black' %}rgba(0, 0, 0, 0.8); color: #fff;
+                                       {% endif %}">
+                            {{ promotion.get_old_belt_rank_display }}
+                        </span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" 
+                              style="background-color: {% if promotion.new_belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
+                                       {% elif promotion.new_belt_rank == 'yellow' %}rgba(255, 193, 7, 0.2); color: #ffc107;
+                                       {% elif promotion.new_belt_rank == 'orange' %}rgba(255, 152, 0, 0.2); color: #ff9800;
+                                       {% elif promotion.new_belt_rank == 'green' %}rgba(76, 175, 80, 0.2); color: #4caf50;
+                                       {% elif promotion.new_belt_rank == 'blue' %}rgba(33, 150, 243, 0.2); color: #2196f3;
+                                       {% elif promotion.new_belt_rank == 'brown' %}rgba(121, 85, 72, 0.2); color: #795548;
+                                       {% elif promotion.new_belt_rank == 'black' %}rgba(0, 0, 0, 0.8); color: #fff;
+                                       {% endif %}">
+                            {{ promotion.get_new_belt_rank_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Promotion Type Badge -->
+                <div>
+                    {% if promotion.promotion_type == 'admin_override' %}
+                        <span class="inline-flex items-center px-3 py-1 bg-orange-500 bg-opacity-20 text-orange-400 text-xs rounded-full font-medium">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3z"></path>
+                                <path fill-rule="evenodd" d="M15.657 15.657a8 8 0 01-11.314 0l.707-.707a6 6 0 0010-8.486l-.707-.707a8 8 0 0111.314 11.314l-.707-.707a6 6 0 000-8.486l.707-.707a8 8 0 010 11.314zM12.5 9a.5.5 0 01-.5.5h-8a.5.5 0 01-.5-.5V7a.5.5 0 01.5-.5h8a.5.5 0 01.5.5v2z"></path>
+                            </svg>
+                            Admin Override
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-3 py-1 bg-green-500 bg-opacity-20 text-green-400 text-xs rounded-full font-medium">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12 16.5a4.5 4.5 0 109-9 4.5 4.5 0 009 9zm0-1a3.5 3.5 0 110-7 3.5 3.5 0 010 7zm1.5-5a1 1 0 100-2 1 1 0 000 2z"></path>
+                            </svg>
+                            Automatic
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Date -->
+                <div class="text-sm text-gray-400">
+                    {{ promotion.promoted_at|date:"M d, Y" }} at {{ promotion.promoted_at|time:"H:i" }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Info -->
+        <div class="mt-4 pt-4 border-t border-gray-700 space-y-2">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-400">Points Earned:</span>
+                <span class="text-blue-400 font-medium">{{ promotion.points_earned }}</span>
+            </div>
+            {% if promotion.promoted_by %}
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-400">Promoted By:</span>
+                <span class="text-gray-300">{{ promotion.promoted_by.get_full_name|default:promotion.promoted_by.username }}</span>
+            </div>
+            {% endif %}
+            {% if promotion.admin_notes %}
+            <div class="text-sm mt-3">
+                <p class="text-gray-400 text-xs uppercase tracking-wide font-semibold">Admin Notes:</p>
+                <p class="text-gray-300 mt-1 bg-gray-700 bg-opacity-50 p-2 rounded text-xs">{{ promotion.admin_notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-gray-800 rounded-lg shadow-lg p-12 border border-gray-700 text-center">
+    <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <p class="text-lg font-medium text-gray-400 mb-1">No promotion history found</p>
+    <p class="text-sm text-gray-500">Belt rank promotions will appear here once they are recorded</p>
+</div>
+{% endif %}

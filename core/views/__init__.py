@@ -7,6 +7,7 @@ from core.views.auth import (
     redirect_to_dashboard,
     login_view,
     logout_view,
+    register_view,
 )
 
 # Admin views
@@ -39,6 +40,14 @@ from core.views.admin import (
     payment_mark_completed,
     reports_view,
     reports_export,
+)
+
+# Registration views
+from core.views.admin_registrations import (
+    registration_list,
+    registration_detail,
+    registration_approve,
+    registration_reject,
 )
 
 # Trainee views

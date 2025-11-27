@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Registration Details - Admin Dashboard{% endblock %}
+
+{% block page_title %}Registration Details{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Back Link -->
+    <a href="{% url 'admin_registrations' %}" class="inline-flex items-center text-gray-400 hover:text-white transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Registrations
+    </a>
+
+    <!-- Registration Card -->
+    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-gray-750 to-gray-800 px-8 py-6 border-b border-gray-700">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">{{ registration.first_name }} {{ registration.last_name }}</h2>
+                    <p class="text-gray-400 mt-1">{{ registration.email }}</p>
+                </div>
+                <div class="flex gap-2">
+                    {% if registration.status == 'pending' %}
+                        <span class="px-4 py-2 bg-yellow-900/50 text-yellow-300 rounded-lg text-sm font-semibold border border-yellow-700">Pending Review</span>
+                    {% elif registration.status == 'approved' %}
+                        <span class="px-4 py-2 bg-green-900/50 text-green-300 rounded-lg text-sm font-semibold border border-green-700">Approved</span>
+                    {% elif registration.status == 'rejected' %}
+                        <span class="px-4 py-2 bg-red-900/50 text-red-300 rounded-lg text-sm font-semibold border border-red-700">Rejected</span>
+                    {% endif %}
+                    
+                    {% if registration.payment_status == 'paid' %}
+                        <span class="px-4 py-2 bg-green-900/50 text-green-300 rounded-lg text-sm font-semibold border border-green-700">Payment Paid</span>
+                    {% else %}
+                        <span class="px-4 py-2 bg-red-900/50 text-red-300 rounded-lg text-sm font-semibold border border-red-700">Payment Unpaid</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-8 py-6 space-y-6">
+            <!-- Personal Information -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Personal Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-400 text-sm">First Name</p>
+                        <p class="text-white font-medium mt-1">{{ registration.first_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Last Name</p>
+                        <p class="text-white font-medium mt-1">{{ registration.last_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Email</p>
+                        <p class="text-white font-medium mt-1">{{ registration.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Phone</p>
+                        <p class="text-white font-medium mt-1">{{ registration.phone }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Date of Birth</p>
+                        <p class="text-white font-medium mt-1">{{ registration.date_of_birth|date:"M d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Belt Level</p>
+                        <p class="text-white font-medium mt-1">{{ registration.get_belt_level_display }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="border-t border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Submitted Documents</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-750 rounded-lg p-4 border border-gray-600">
+                        <p class="text-gray-400 text-sm mb-2">Medical Certificate</p>
+                        {% if registration.medical_certificate %}
+                            <a href="{{ registration.medical_certificate.url }}" 
+                               target="_blank"
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download
+                            </a>
+                        {% else %}
+                            <p class="text-gray-500 text-sm">Not uploaded</p>
+                        {% endif %}
+                    </div>
+                    <div class="bg-gray-750 rounded-lg p-4 border border-gray-600">
+                        <p class="text-gray-400 text-sm mb-2">Waiver Form</p>
+                        {% if registration.waiver %}
+                            <a href="{{ registration.waiver.url }}" 
+                               target="_blank"
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download
+                            </a>
+                        {% else %}
+                            <p class="text-gray-500 text-sm">Not uploaded</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Status -->
+            <div class="border-t border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Registration Status</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-400 text-sm">Status</p>
+                        <p class="text-white font-medium mt-1">{{ registration.get_status_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Payment Status</p>
+                        <p class="text-white font-medium mt-1">{{ registration.get_payment_status_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Submitted On</p>
+                        <p class="text-white font-medium mt-1">{{ registration.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Membership Fee</p>
+                        <p class="text-white font-medium mt-1">₱{{ registration.membership_fee }}</p>
+                    </div>
+                </div>
+                
+                {% if registration.reviewed_by %}
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <p class="text-gray-400 text-sm">Reviewed By</p>
+                    <p class="text-white font-medium mt-1">{{ registration.reviewed_by.get_full_name|default:registration.reviewed_by.username }}</p>
+                    <p class="text-gray-400 text-sm mt-2">Reviewed On</p>
+                    <p class="text-white font-medium mt-1">{{ registration.reviewed_at|date:"M d, Y H:i" }}</p>
+                </div>
+                {% endif %}
+                
+                {% if registration.rejection_reason %}
+                <div class="mt-6 pt-6 border-t border-gray-700 bg-red-900/20 p-4 rounded-lg border border-red-700/30">
+                    <p class="text-red-300 text-sm font-semibold">Rejection Reason</p>
+                    <p class="text-gray-300 mt-2">{{ registration.rejection_reason }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Payment Details -->
+            {% if payment %}
+            <div class="border-t border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Payment Record</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-400 text-sm">Amount</p>
+                        <p class="text-white font-medium mt-1">₱{{ payment.amount }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Payment Type</p>
+                        <p class="text-white font-medium mt-1">{{ payment.get_payment_type_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Payment Method</p>
+                        <p class="text-white font-medium mt-1">{{ payment.get_payment_method_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Status</p>
+                        <p class="text-white font-medium mt-1">
+                            {% if payment.status == 'completed' %}
+                                <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded text-sm border border-green-700">{{ payment.get_status_display }}</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 rounded text-sm border border-yellow-700">{{ payment.get_status_display }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Paid On</p>
+                        <p class="text-white font-medium mt-1">{{ payment.completed_at|date:"M d, Y H:i"|default:"Not yet paid" }}</p>
+                    </div>
+                    {% if payment.notes %}
+                    <div class="md:col-span-2">
+                        <p class="text-gray-400 text-sm">Notes</p>
+                        <p class="text-gray-300 mt-1">{{ payment.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Admin Actions -->
+            <div class="border-t border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Admin Actions</h3>
+                
+                <!-- Payment Action for Approved Registrations -->
+                {% if registration.status == 'approved' and registration.payment_status == 'unpaid' %}
+                <form method="POST" class="space-y-4 mb-4">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="mark_payment_paid" 
+                            class="w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition">
+                        Mark Payment as Paid
+                    </button>
+                </form>
+                {% endif %}
+                
+                <!-- Registration Status Actions (for pending) -->
+                {% if registration.status == 'pending' %}
+                <form method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Mark as Payment Paid -->
+                    {% if registration.payment_status == 'unpaid' %}
+                    <div>
+                        <label for="mark_payment" class="flex items-center space-x-2">
+                            <input type="checkbox" id="mark_payment" name="mark_payment" 
+                                   class="w-4 h-4 rounded bg-gray-700 border border-gray-600 text-red-600 focus:ring-red-500">
+                            <span class="text-white font-medium">Mark as Payment Paid</span>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Approve Button -->
+                    <button type="submit" name="action" value="approve" 
+                            class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition">
+                        Approve Registration
+                    </button>
+                    
+                    <!-- Reject -->
+                    <div class="space-y-2">
+                        <label for="rejection_reason" class="block text-sm font-medium text-gray-300">
+                            Rejection Reason (optional)
+                        </label>
+                        <textarea id="rejection_reason" name="rejection_reason" rows="3"
+                                  placeholder="Explain why this registration is being rejected..."
+                                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                    </div>
+                    
+                    <button type="submit" name="action" value="reject" 
+                            class="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
+                        Reject Registration
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@ Forms for user profile management and trainee operations.
 """
 from django import forms
 from django.contrib.auth.models import User
-from core.models import UserProfile, Trainee
+from core.models import UserProfile, Trainee, Registration
 
 
 class TraineeProfileForm(forms.ModelForm):
@@ -95,3 +95,90 @@ class TraineeDetailForm(forms.ModelForm):
                 'placeholder': 'Emergency Contact Phone'
             })
         }
+
+
+class RegistrationForm(forms.ModelForm):
+    """
+    Form for new member registration.
+    Requires medical certificate, waiver upload, and personal information.
+    """
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+            'placeholder': 'Password'
+        })
+    )
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+            'placeholder': 'Confirm Password'
+        })
+    )
+    
+    class Meta:
+        model = Registration
+        fields = ['first_name', 'last_name', 'email', 'phone', 'date_of_birth', 'belt_level', 'medical_certificate', 'waiver']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'placeholder': 'First Name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'placeholder': 'Last Name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'placeholder': 'Email Address'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'placeholder': 'Phone Number'
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'type': 'date'
+            }),
+            'belt_level': forms.Select(attrs={
+                'class': 'block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200'
+            }),
+            'medical_certificate': forms.FileInput(attrs={
+                'class': 'block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'accept': '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+            }),
+            'waiver': forms.FileInput(attrs={
+                'class': 'block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200',
+                'accept': '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+            })
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+        
+        if password and password_confirm:
+            if password != password_confirm:
+                raise forms.ValidationError("Passwords do not match.")
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        registration = super().save(commit=False)
+        
+        # Create user account
+        if not registration.user_id:
+            username = registration.email.split('@')[0]
+            user = User.objects.create_user(
+                username=username,
+                email=registration.email,
+                password=self.cleaned_data['password'],
+                first_name=registration.first_name,
+                last_name=registration.last_name
+            )
+            registration.user = user
+        
+        if commit:
+            registration.save()
+        
+        return registration

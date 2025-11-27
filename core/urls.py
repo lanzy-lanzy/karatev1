@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import admin as admin_views
+from .views import admin_registrations as admin_reg_views
 from .views import trainee as trainee_views
 from .views import judge as judge_views
 from .views import leaderboard as leaderboard_views
@@ -10,9 +11,16 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
     
     # Admin URLs
     path('admin/dashboard/', admin_views.dashboard_view, name='admin_dashboard'),
+    
+    # Registration Management URLs
+    path('admin/registrations/', admin_reg_views.registration_list, name='admin_registrations'),
+    path('admin/registrations/<int:registration_id>/', admin_reg_views.registration_detail, name='admin_registration_detail'),
+    path('admin/registrations/<int:registration_id>/approve/', admin_reg_views.registration_approve, name='admin_registration_approve'),
+    path('admin/registrations/<int:registration_id>/reject/', admin_reg_views.registration_reject, name='admin_registration_reject'),
     
     # Trainee Management URLs (Requirements: 3.1-3.6)
     path('admin/trainees/', admin_views.trainee_list, name='admin_trainees'),
@@ -50,6 +58,12 @@ urlpatterns = [
     # Reports URLs (Requirements: 7.1-7.4)
     path('admin/reports/', admin_views.reports_view, name='admin_reports'),
     path('admin/reports/export/', admin_views.reports_export, name='admin_reports_export'),
+    
+    # Belt Rank Promotion URLs
+    path('admin/belt-promotion/', admin_views.belt_rank_promotion_list, name='admin_belt_promotion'),
+    path('admin/belt-promotion/partial/', admin_views.belt_rank_promotion_list_partial, name='admin_belt_promotion_list_partial'),
+    path('admin/belt-promotion/<int:trainee_id>/promote/', admin_views.belt_rank_promote, name='admin_belt_rank_promote'),
+    path('admin/belt-promotion/history/', admin_views.belt_rank_promotion_history, name='admin_belt_promotion_history'),
     
     # Trainee URLs (Requirements: 8.1-8.3, 9.1-9.4, 10.1-10.3, 11.1-11.3)
     path('trainee/dashboard/', trainee_views.dashboard_view, name='trainee_dashboard'),

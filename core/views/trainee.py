@@ -40,6 +40,12 @@ def dashboard_view(request):
         scheduled_time__gte=timezone.now()
     ).select_related('event', 'competitor1', 'competitor2').order_by('scheduled_time')[:5]
     
+    # Get total matches count (both scheduled and completed)
+    total_matches_count = Match.objects.filter(
+        Q(competitor1=trainee) | Q(competitor2=trainee),
+        status__in=['scheduled', 'completed']
+    ).count()
+    
     # Get recent match results
     recent_results = Match.objects.filter(
         Q(competitor1=trainee) | Q(competitor2=trainee),
@@ -71,6 +77,7 @@ def dashboard_view(request):
         'trainee': trainee,
         'registered_events': registered_events,
         'upcoming_matches': upcoming_matches,
+        'total_matches_count': total_matches_count,
         'recent_results': recent_results,
         'pending_payments_count': pending_payments_count,
         # Points and belt rank stats

@@ -511,10 +511,18 @@ class BeltRankProgress(models.Model):
     """
     BeltRankProgress model tracking belt rank promotions/changes for trainees.
     """
+    PROMOTION_TYPE_CHOICES = [
+        ('automatic', 'Automatic'),
+        ('admin_override', 'Admin Override'),
+    ]
+    
     trainee = models.ForeignKey(Trainee, on_delete=models.CASCADE, related_name='belt_rank_progress')
     old_belt_rank = models.CharField(max_length=20, choices=Trainee.BELT_CHOICES)
     new_belt_rank = models.CharField(max_length=20, choices=Trainee.BELT_CHOICES)
     points_earned = models.IntegerField()
+    promotion_type = models.CharField(max_length=20, choices=PROMOTION_TYPE_CHOICES, default='automatic')
+    admin_notes = models.TextField(blank=True)
+    promoted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='belt_promotions_given')
     promoted_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -596,3 +604,52 @@ class Notification(models.Model):
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
+
+
+class Registration(models.Model):
+    """
+    Registration model for new member sign-ups requiring admin approval.
+    Users must upload medical certificate and waiver documents.
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'),
+        ('paid', 'Paid'),
+    ]
+    
+    # User information
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registration')
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    
+    # Additional info
+    date_of_birth = models.DateField()
+    belt_level = models.CharField(max_length=20, choices=Trainee.BELT_CHOICES, default='white')
+    
+    # Documents
+    medical_certificate = models.FileField(upload_to='registrations/medical_certs/')
+    waiver = models.FileField(upload_to='registrations/waivers/')
+    
+    # Status and payment
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
+    membership_fee = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='registrations_reviewed')
+    rejection_reason = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.get_status_display()}"

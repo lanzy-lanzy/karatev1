@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <p class="text-gray-400 text-sm">Pending Registrations</p>
+            <p class="text-3xl font-bold text-yellow-400 mt-1">{{ pending_count }}</p>
+        </div>
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <p class="text-gray-400 text-sm">Approved Members</p>
+            <p class="text-3xl font-bold text-green-400 mt-1">{{ approved_count }}</p>
+        </div>
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <p class="text-gray-400 text-sm">Paid Memberships</p>
+            <p class="text-3xl font-bold text-blue-400 mt-1">{{ paid_count }}</p>
+        </div>
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <p class="text-gray-400 text-sm">Rejected Registrations</p>
+            <p class="text-3xl font-bold text-red-400 mt-1">{{ rejected_count }}</p>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+        <form method="GET" class="flex flex-col md:flex-row gap-4">
+            <input type="text" 
+                   name="search" 
+                   value="{{ request.GET.search }}"
+                   placeholder="Search by name or email..."
+                   class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500">
+            
+            <select name="status" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+            
+            <select name="payment_status" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="">All Payment Status</option>
+                <option value="paid" {% if request.GET.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                <option value="unpaid" {% if request.GET.payment_status == 'unpaid' %}selected{% endif %}>Unpaid</option>
+            </select>
+            
+            <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Registrations Table -->
+    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-750 border-b border-gray-700">
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Phone</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Payment</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Submitted</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% if registrations %}
+                        {% for registration in registrations %}
+                        <tr class="hover:bg-gray-750 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                                {{ registration.first_name }} {{ registration.last_name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {{ registration.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {{ registration.phone }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if registration.status == 'pending' %}
+                                    <span class="px-3 py-1 bg-yellow-900/50 text-yellow-300 rounded-full text-xs font-semibold border border-yellow-700">Pending</span>
+                                {% elif registration.status == 'approved' %}
+                                    <span class="px-3 py-1 bg-green-900/50 text-green-300 rounded-full text-xs font-semibold border border-green-700">Approved</span>
+                                {% elif registration.status == 'rejected' %}
+                                    <span class="px-3 py-1 bg-red-900/50 text-red-300 rounded-full text-xs font-semibold border border-red-700">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if registration.payment_status == 'paid' %}
+                                    <span class="px-3 py-1 bg-green-900/50 text-green-300 rounded-full text-xs font-semibold border border-green-700">Paid</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-red-900/50 text-red-300 rounded-full text-xs font-semibold border border-red-700">Unpaid</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {{ registration.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                                <a href="{% url 'admin_registration_detail' registration.id %}" 
+                                   class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">
+                                    View
+                                </a>
+                                {% if registration.status == 'pending' %}
+                                    <a href="{% url 'admin_registration_approve' registration.id %}" 
+                                       class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold">
+                                        Approve
+                                    </a>
+                                    <a href="{% url 'admin_registration_reject' registration.id %}" 
+                                       class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold">
+                                        Reject
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <h3 class="text-gray-400">No registrations found</h3>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex justify-center items-center space-x-2">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Previous</a>
+        {% endif %}
+        
+        <span class="text-gray-400">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

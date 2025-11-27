@@ -12,7 +12,7 @@ from django.contrib import messages
 from datetime import timedelta
 
 from core.decorators import admin_required
-from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match
+from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match, BeltRankProgress, Registration
 
 
 @admin_required
@@ -1695,3 +1695,207 @@ def reports_export(request):
         return response
     
     return HttpResponse('Invalid export format', status=400)
+
+
+# Belt Rank Promotion Views
+
+@admin_required
+def belt_rank_promotion_list(request):
+    """
+    List all trainees with belt rank promotion management interface.
+    Allows admin to view current belt ranks and promote trainees.
+    """
+    trainees = Trainee.objects.select_related('profile__user', 'points').all()
+    
+    # Apply search filter
+    search = request.GET.get('search', '').strip()
+    if search:
+        trainees = trainees.filter(
+            Q(profile__user__first_name__icontains=search) |
+            Q(profile__user__last_name__icontains=search) |
+            Q(profile__user__username__icontains=search) |
+            Q(belt_rank__icontains=search)
+        )
+    
+    # Apply belt filter
+    belt_filter = request.GET.get('belt_filter', '').strip()
+    if belt_filter:
+        trainees = trainees.filter(belt_rank=belt_filter)
+    
+    # Apply status filter
+    status_filter = request.GET.get('status_filter', '').strip()
+    if status_filter:
+        trainees = trainees.filter(status=status_filter)
+    
+    # Order by name
+    trainees = trainees.order_by('profile__user__first_name', 'profile__user__last_name')
+    
+    # Get all belt rank choices for filter dropdown
+    belt_choices = Trainee.BELT_CHOICES
+    
+    context = {
+        'trainees': trainees,
+        'belt_choices': belt_choices,
+        'search_query': search,
+        'belt_filter': belt_filter,
+        'status_filter': status_filter,
+    }
+    
+    # Return partial for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'admin/belt_promotion/list_partial.html', context)
+    
+    return render(request, 'admin/belt_promotion/list.html', context)
+
+
+@admin_required
+def belt_rank_promotion_list_partial(request):
+    """
+    Partial view for HTMX belt promotion list updates.
+    """
+    trainees = Trainee.objects.select_related('profile__user', 'points').all()
+    
+    # Apply search filter
+    search = request.GET.get('search', '').strip()
+    if search:
+        trainees = trainees.filter(
+            Q(profile__user__first_name__icontains=search) |
+            Q(profile__user__last_name__icontains=search) |
+            Q(profile__user__username__icontains=search) |
+            Q(belt_rank__icontains=search)
+        )
+    
+    # Apply belt filter
+    belt_filter = request.GET.get('belt_filter', '').strip()
+    if belt_filter:
+        trainees = trainees.filter(belt_rank=belt_filter)
+    
+    # Apply status filter
+    status_filter = request.GET.get('status_filter', '').strip()
+    if status_filter:
+        trainees = trainees.filter(status=status_filter)
+    
+    # Order by name
+    trainees = trainees.order_by('profile__user__first_name', 'profile__user__last_name')
+    
+    return render(request, 'admin/belt_promotion/list_partial.html', {'trainees': trainees})
+
+
+@admin_required
+def belt_rank_promote(request, trainee_id):
+    """
+    Promote a trainee to the next belt rank with admin override.
+    """
+    trainee = get_object_or_404(Trainee.objects.select_related('profile__user'), id=trainee_id)
+    
+    if request.method == 'POST':
+        new_belt_rank = request.POST.get('new_belt_rank', '').strip()
+        admin_notes = request.POST.get('admin_notes', '').strip()
+        
+        # Validation
+        valid_belts = [belt[0] for belt in Trainee.BELT_CHOICES]
+        if new_belt_rank not in valid_belts:
+            return render(
+                request,
+                'admin/belt_promotion/promote_form.html',
+                {
+                    'trainee': trainee,
+                    'belt_choices': Trainee.BELT_CHOICES,
+                    'error': 'Invalid belt rank selected'
+                }
+            )
+        
+        # Check that new belt is different from current
+        if new_belt_rank == trainee.belt_rank:
+            return render(
+                request,
+                'admin/belt_promotion/promote_form.html',
+                {
+                    'trainee': trainee,
+                    'belt_choices': Trainee.BELT_CHOICES,
+                    'error': 'New belt rank must be different from current rank'
+                }
+            )
+        
+        # Create belt rank progress record
+        old_belt_rank = trainee.belt_rank
+        try:
+            trainee_points = trainee.points.total_points if hasattr(trainee, 'points') else 0
+        except:
+            trainee_points = 0
+        
+        # Update trainee belt rank
+        trainee.belt_rank = new_belt_rank
+        trainee.save()
+        
+        # Create progress record
+        BeltRankProgress.objects.create(
+            trainee=trainee,
+            old_belt_rank=old_belt_rank,
+            new_belt_rank=new_belt_rank,
+            points_earned=trainee_points,
+            promotion_type='admin_override',
+            admin_notes=admin_notes,
+            promoted_by=request.user
+        )
+        
+        # Create notification for trainee
+        from core.models import Notification
+        Notification.objects.create(
+            notification_type='belt_promotion',
+            title=f'Belt Promotion to {dict(Trainee.BELT_CHOICES).get(new_belt_rank, new_belt_rank)}',
+            message=f'Congratulations! Your belt rank has been promoted to {dict(Trainee.BELT_CHOICES).get(new_belt_rank, new_belt_rank)} by admin.',
+            recipient=trainee.profile.user,
+            trainee=trainee
+        )
+        
+        messages.success(
+            request,
+            f'{trainee.profile.user.get_full_name() or trainee.profile.user.username} has been promoted to {dict(Trainee.BELT_CHOICES).get(new_belt_rank, new_belt_rank)}.'
+        )
+        
+        # For HTMX requests, redirect with HX-Redirect header
+        if request.headers.get('HX-Request'):
+            response = HttpResponse()
+            response['HX-Redirect'] = '/admin/belt-promotion/'
+            return response
+        
+        return redirect('admin_belt_promotion')
+    
+    # GET request - show promotion form
+    context = {
+        'trainee': trainee,
+        'belt_choices': Trainee.BELT_CHOICES,
+    }
+    return render(request, 'admin/belt_promotion/promote_form.html', context)
+
+
+@admin_required
+def belt_rank_promotion_history(request):
+    """
+    View promotion history for a specific trainee or all trainees.
+    """
+    # Get all promotion records
+    promotions = BeltRankProgress.objects.select_related(
+        'trainee__profile__user',
+        'promoted_by'
+    ).all()
+    
+    # Apply filter by trainee if specified
+    trainee_id = request.GET.get('trainee_id', '').strip()
+    if trainee_id:
+        promotions = promotions.filter(trainee_id=trainee_id)
+    
+    # Order by most recent first
+    promotions = promotions.order_by('-promoted_at')
+    
+    context = {
+        'promotions': promotions,
+        'trainee_id': trainee_id,
+    }
+    
+    # Return partial for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'admin/belt_promotion/history_partial.html', context)
+    
+    return render(request, 'admin/belt_promotion/history.html', context)

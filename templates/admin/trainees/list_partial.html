@@ -1,200 +1,189 @@
 {% comment %}
 Trainee List Partial - Used for HTMX updates
-Requirements: 3.1, 3.6
 {% endcomment %}
 
 <!-- Results Count -->
-<div class="mb-4 text-sm text-gray-500">
-    Showing {{ trainees|length }} trainee{{ trainees|length|pluralize }}
+<div class="mb-4 text-sm text-gray-400">
+    Showing <span class="text-red-400 font-semibold">{{ trainees|length }}</span> trainee{{ trainees|length|pluralize }}
 </div>
 
 <!-- Desktop Table View -->
-<div class="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Belt Rank
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Age
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Weight Class
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                </th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                </th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            {% for trainee in trainees %}
-            <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            {% if trainee.profile.profile_image %}
-                            <img class="h-10 w-10 rounded-full object-cover" src="{{ trainee.profile.profile_image.url }}" alt="">
-                            {% else %}
-                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <span class="text-gray-500 font-medium text-sm">
-                                    {{ trainee.profile.user.first_name|slice:":1"|upper }}{{ trainee.profile.user.last_name|slice:":1"|upper }}
-                                </span>
+<div class="hidden md:block overflow-x-auto">
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-750 border-b border-gray-700">
+                <tr>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Belt Rank</th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Age</th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Weight Class</th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for trainee in trainees %}
+                <tr class="hover:bg-gray-750 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                {% if trainee.profile.profile_image %}
+                                <img class="h-10 w-10 rounded-full object-cover" src="{{ trainee.profile.profile_image.url }}" alt="">
+                                {% else %}
+                                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                                    <span class="text-white font-semibold text-sm">
+                                        {{ trainee.profile.user.first_name|slice:":1"|upper }}{{ trainee.profile.user.last_name|slice:":1"|upper }}
+                                    </span>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                        </div>
-                        <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900">
-                                {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                {{ trainee.profile.user.email }}
+                            <div class="ml-4">
+                                <div class="text-sm font-semibold text-white">
+                                    {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    {{ trainee.profile.user.email }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        {% if trainee.belt_rank == 'white' %}bg-gray-100 text-gray-800
-                        {% elif trainee.belt_rank == 'yellow' %}bg-yellow-100 text-yellow-800
-                        {% elif trainee.belt_rank == 'orange' %}bg-orange-100 text-orange-800
-                        {% elif trainee.belt_rank == 'green' %}bg-green-100 text-green-800
-                        {% elif trainee.belt_rank == 'blue' %}bg-blue-100 text-blue-800
-                        {% elif trainee.belt_rank == 'brown' %}bg-amber-100 text-amber-800
-                        {% elif trainee.belt_rank == 'black' %}bg-gray-900 text-white
-                        {% endif %}">
-                        {{ trainee.get_belt_rank_display }}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ trainee.age|default:"N/A" }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ trainee.weight_class }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        {% if trainee.status == 'active' %}bg-green-100 text-green-800
-                        {% elif trainee.status == 'inactive' %}bg-gray-100 text-gray-800
-                        {% elif trainee.status == 'suspended' %}bg-red-100 text-red-800
-                        {% endif %}">
-                        {{ trainee.get_status_display }}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div class="flex items-center justify-end space-x-2">
-                        <a href="{% url 'admin_trainee_edit' trainee.id %}" 
-                           class="p-2 min-w-[44px] min-h-[44px] text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center"
-                           title="Edit">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                        </a>
-                        <button type="button"
-                                hx-delete="{% url 'admin_trainee_delete' trainee.id %}"
-                                hx-confirm="Are you sure you want to delete {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}? This action cannot be undone."
-                                hx-target="#trainee-list"
-                                hx-swap="innerHTML"
-                                class="p-2 min-w-[44px] min-h-[44px] text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center justify-center"
-                                title="Delete">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="px-6 py-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No trainees found</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by adding a new trainee.</p>
-                    <div class="mt-6">
-                        <a href="{% url 'admin_trainee_add' %}" 
-                           class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Add Trainee
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                            {% if trainee.belt_rank == 'white' %}bg-gray-700 text-gray-200
+                            {% elif trainee.belt_rank == 'yellow' %}bg-yellow-500 bg-opacity-20 text-yellow-300
+                            {% elif trainee.belt_rank == 'orange' %}bg-orange-500 bg-opacity-20 text-orange-300
+                            {% elif trainee.belt_rank == 'green' %}bg-green-500 bg-opacity-20 text-green-300
+                            {% elif trainee.belt_rank == 'blue' %}bg-blue-500 bg-opacity-20 text-blue-300
+                            {% elif trainee.belt_rank == 'brown' %}bg-amber-500 bg-opacity-20 text-amber-300
+                            {% elif trainee.belt_rank == 'black' %}bg-gray-900 text-white
+                            {% endif %}">
+                            {{ trainee.get_belt_rank_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                        {{ trainee.age|default:"—" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                        {{ trainee.weight_class }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                            {% if trainee.status == 'active' %}bg-green-500 bg-opacity-20 text-green-300
+                            {% elif trainee.status == 'inactive' %}bg-gray-600 text-gray-200
+                            {% elif trainee.status == 'suspended' %}bg-red-500 bg-opacity-20 text-red-300
+                            {% endif %}">
+                            {{ trainee.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-2">
+                            <a href="{% url 'admin_trainee_edit' trainee.id %}" 
+                               class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500 hover:bg-opacity-10 rounded-lg transition-all inline-flex items-center justify-center"
+                               title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                            <button type="button"
+                                    hx-delete="{% url 'admin_trainee_delete' trainee.id %}"
+                                    hx-confirm="Are you sure you want to delete {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}? This action cannot be undone."
+                                    hx-target="#trainee-list"
+                                    hx-swap="innerHTML"
+                                    class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-10 rounded-lg transition-all inline-flex items-center justify-center"
+                                    title="Delete">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-semibold text-gray-300">No trainees found</h3>
+                        <p class="mt-1 text-sm text-gray-400">Get started by adding a new trainee.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'admin_trainee_add' %}" 
+                               class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white btn-primary rounded-lg">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Trainee
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Mobile Card View -->
 <div class="md:hidden space-y-4">
     {% for trainee in trainees %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="flex items-start justify-between">
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 p-5 feature-card">
+        <div class="flex items-start justify-between mb-4">
             <div class="flex items-center">
                 <div class="flex-shrink-0 h-12 w-12">
                     {% if trainee.profile.profile_image %}
                     <img class="h-12 w-12 rounded-full object-cover" src="{{ trainee.profile.profile_image.url }}" alt="">
                     {% else %}
-                    <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span class="text-gray-500 font-medium">
+                    <div class="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                        <span class="text-white font-semibold">
                             {{ trainee.profile.user.first_name|slice:":1"|upper }}{{ trainee.profile.user.last_name|slice:":1"|upper }}
                         </span>
                     </div>
                     {% endif %}
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
+                    <p class="text-sm font-semibold text-white">
                         {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}
                     </p>
-                    <p class="text-sm text-gray-500">{{ trainee.profile.user.email }}</p>
+                    <p class="text-xs text-gray-400">{{ trainee.profile.user.email }}</p>
                 </div>
             </div>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if trainee.status == 'active' %}bg-green-100 text-green-800
-                {% elif trainee.status == 'inactive' %}bg-gray-100 text-gray-800
-                {% elif trainee.status == 'suspended' %}bg-red-100 text-red-800
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                {% if trainee.status == 'active' %}bg-green-500 bg-opacity-20 text-green-300
+                {% elif trainee.status == 'inactive' %}bg-gray-600 text-gray-200
+                {% elif trainee.status == 'suspended' %}bg-red-500 bg-opacity-20 text-red-300
                 {% endif %}">
                 {{ trainee.get_status_display }}
             </span>
         </div>
         
-        <div class="mt-4 grid grid-cols-3 gap-4 text-sm">
+        <div class="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-700">
             <div>
-                <p class="text-gray-500">Belt</p>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                    {% if trainee.belt_rank == 'white' %}bg-gray-100 text-gray-800
-                    {% elif trainee.belt_rank == 'yellow' %}bg-yellow-100 text-yellow-800
-                    {% elif trainee.belt_rank == 'orange' %}bg-orange-100 text-orange-800
-                    {% elif trainee.belt_rank == 'green' %}bg-green-100 text-green-800
-                    {% elif trainee.belt_rank == 'blue' %}bg-blue-100 text-blue-800
-                    {% elif trainee.belt_rank == 'brown' %}bg-amber-100 text-amber-800
+                <p class="text-xs text-gray-400 mb-1">Belt</p>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                    {% if trainee.belt_rank == 'white' %}bg-gray-700 text-gray-200
+                    {% elif trainee.belt_rank == 'yellow' %}bg-yellow-500 bg-opacity-20 text-yellow-300
+                    {% elif trainee.belt_rank == 'orange' %}bg-orange-500 bg-opacity-20 text-orange-300
+                    {% elif trainee.belt_rank == 'green' %}bg-green-500 bg-opacity-20 text-green-300
+                    {% elif trainee.belt_rank == 'blue' %}bg-blue-500 bg-opacity-20 text-blue-300
+                    {% elif trainee.belt_rank == 'brown' %}bg-amber-500 bg-opacity-20 text-amber-300
                     {% elif trainee.belt_rank == 'black' %}bg-gray-900 text-white
                     {% endif %}">
                     {{ trainee.get_belt_rank_display }}
                 </span>
             </div>
             <div>
-                <p class="text-gray-500">Age</p>
-                <p class="font-medium text-gray-900">{{ trainee.age|default:"N/A" }}</p>
+                <p class="text-xs text-gray-400 mb-1">Age</p>
+                <p class="font-semibold text-white">{{ trainee.age|default:"—" }}</p>
             </div>
             <div>
-                <p class="text-gray-500">Weight</p>
-                <p class="font-medium text-gray-900">{{ trainee.weight_class }}</p>
+                <p class="text-xs text-gray-400 mb-1">Weight</p>
+                <p class="font-semibold text-white">{{ trainee.weight_class }}</p>
             </div>
         </div>
         
-        <div class="mt-4 flex justify-end space-x-2 border-t border-gray-100 pt-4">
+        <div class="flex justify-end gap-2">
             <a href="{% url 'admin_trainee_edit' trainee.id %}" 
-               class="px-4 py-2 min-h-[44px] text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center">
+               class="px-4 py-2 text-sm font-semibold text-blue-300 bg-blue-500 bg-opacity-10 rounded-lg hover:bg-opacity-20 transition-all inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
@@ -205,7 +194,7 @@ Requirements: 3.1, 3.6
                     hx-confirm="Are you sure you want to delete {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}?"
                     hx-target="#trainee-list"
                     hx-swap="innerHTML"
-                    class="px-4 py-2 min-h-[44px] text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors inline-flex items-center">
+                    class="px-4 py-2 text-sm font-semibold text-red-300 bg-red-500 bg-opacity-10 rounded-lg hover:bg-opacity-20 transition-all inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
@@ -214,15 +203,15 @@ Requirements: 3.1, 3.6
         </div>
     </div>
     {% empty %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No trainees found</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by adding a new trainee.</p>
+        <h3 class="mt-2 text-sm font-semibold text-gray-300">No trainees found</h3>
+        <p class="mt-1 text-sm text-gray-400">Get started by adding a new trainee.</p>
         <div class="mt-6">
             <a href="{% url 'admin_trainee_add' %}" 
-               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+               class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white btn-primary rounded-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>

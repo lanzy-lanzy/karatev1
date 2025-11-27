@@ -1,11 +1,12 @@
 """
 Authentication views for the BlackCobra Karate Club System.
-Handles login, logout, and role-based redirects.
+Handles login, logout, registration, and role-based redirects.
 """
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from core.forms import RegistrationForm
 
 
 def home(request):
@@ -48,3 +49,26 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('login')
+
+
+def register_view(request):
+    """Handle new member registration with document upload and approval flow."""
+    if request.user.is_authenticated:
+        return redirect_to_dashboard(request.user)
+    
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            registration = form.save()
+            messages.success(
+                request, 
+                'Registration submitted successfully! Your account is pending admin approval. '
+                'Please note: You must pay the $100 membership fee to activate your account.'
+            )
+            return redirect('login')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = RegistrationForm()
+    
+    return render(request, 'auth/register.html', {'form': form})
