@@ -5,138 +5,597 @@
 {% block page_title %}Schedule Match{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Upcoming Matches -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Upcoming Assigned Matches</h3>
-            <p class="text-sm text-gray-500">Matches you are assigned to judge</p>
+<style>
+    .view-toggle-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .view-toggle-btn.active {
+        background-color: #1e40af;
+        color: white;
+    }
+    
+    .view-toggle-btn:not(.active) {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .match-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .match-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .competitor-badge {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .competitor-badge::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .vs-divider {
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+    }
+    
+    .vs-divider::before,
+    .vs-divider::after {
+        content: '';
+        flex-grow: 1;
+        height: 2px;
+        background: linear-gradient(to right, transparent, #3b82f6, transparent);
+    }
+    
+    .vs-text {
+        font-weight: 700;
+        font-size: 1.25rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .belt-badge {
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    
+    .table-view {
+        overflow-x: auto;
+    }
+    
+    .table-view table {
+        min-width: 100%;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-badge::before {
+        content: '';
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background-color: currentColor;
+        opacity: 0.7;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        border-radius: 0.5rem 0.5rem 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .section-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+</style>
+
+<div class="space-y-8">
+    <!-- Upcoming Matches Section -->
+    <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        <!-- Section Header -->
+        <div class="section-header px-6 py-5">
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <h2 class="text-2xl font-bold">Upcoming Assigned Matches</h2>
+                    <p class="text-blue-100 text-sm mt-1">Matches you are assigned to judge</p>
+                </div>
+                {% if upcoming_matches %}
+                <div class="flex items-center space-x-2 bg-white/20 rounded-lg p-1">
+                    <button id="upcoming-card-view" class="view-toggle-btn active px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2" onclick="toggleUpcomingView('card')">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"></path>
+                            <path d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"></path>
+                            <path d="M14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                        <span>Cards</span>
+                    </button>
+                    <button id="upcoming-table-view" class="view-toggle-btn px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2" onclick="toggleUpcomingView('table')">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Table</span>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
         </div>
         
+        <!-- Content -->
         {% if upcoming_matches %}
-        <div class="divide-y divide-gray-200">
-            {% for match in upcoming_matches %}
-            <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <!-- Match Info -->
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-4">
+        <!-- Card View -->
+        <div id="upcoming-card-container" class="fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                {% for match in upcoming_matches %}
+                <div class="match-card rounded-lg p-6 border border-gray-200">
+                    <!-- Competitors -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
                             <!-- Competitor 1 -->
-                            <div class="text-center">
-                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                    <span class="text-red-600 font-bold">
-                                        {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
-                                    </span>
+                            <div class="flex-1 text-center">
+                                <div class="competitor-badge w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg overflow-hidden">
+                                    {% if match.competitor1.profile.profile_image %}
+                                        <img src="{{ match.competitor1.profile.profile_image.url }}" alt="{{ match.competitor1.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-xl">
+                                            {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
                                 </div>
-                                <p class="text-sm font-medium text-gray-900 mt-1">
+                                <h3 class="text-sm font-bold text-gray-900">
                                     {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
-                                </p>
-                                <p class="text-xs text-gray-500">{{ match.competitor1.get_belt_rank_display }} Belt</p>
+                                </h3>
+                                <span class="belt-badge inline-block mt-2 px-3 py-1 rounded-full bg-red-100 text-red-700">
+                                    {{ match.competitor1.get_belt_rank_display }}
+                                </span>
                             </div>
                             
-                            <!-- VS -->
-                            <div class="text-center px-4">
-                                <span class="text-lg font-bold text-gray-400">VS</span>
+                            <!-- VS Divider -->
+                            <div class="vs-divider h-20">
+                                <span class="vs-text">VS</span>
                             </div>
                             
                             <!-- Competitor 2 -->
-                            <div class="text-center">
-                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                                    <span class="text-blue-600 font-bold">
-                                        {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
-                                    </span>
+                            <div class="flex-1 text-center">
+                                <div class="competitor-badge w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg overflow-hidden">
+                                    {% if match.competitor2.profile.profile_image %}
+                                        <img src="{{ match.competitor2.profile.profile_image.url }}" alt="{{ match.competitor2.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-xl">
+                                            {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
                                 </div>
-                                <p class="text-sm font-medium text-gray-900 mt-1">
+                                <h3 class="text-sm font-bold text-gray-900">
                                     {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
-                                </p>
-                                <p class="text-xs text-gray-500">{{ match.competitor2.get_belt_rank_display }} Belt</p>
+                                </h3>
+                                <span class="belt-badge inline-block mt-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                                    {{ match.competitor2.get_belt_rank_display }}
+                                </span>
                             </div>
-                        </div>
-                        
-                        <!-- Match Details -->
-                        <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                            <span class="inline-flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                {{ match.event.name }}
-                            </span>
-                            <span class="inline-flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                {{ match.scheduled_time|date:"M d, Y H:i" }}
-                            </span>
-                            <span class="inline-flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                </svg>
-                                {{ match.event.location }}
-                            </span>
                         </div>
                     </div>
                     
-                    <!-- Status & Actions -->
-                    <div class="mt-4 lg:mt-0 lg:ml-6 flex items-center space-x-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {% if match.status == 'scheduled' %}bg-blue-100 text-blue-800
-                            {% elif match.status == 'ongoing' %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <!-- Divider -->
+                    <div class="border-t border-gray-200 mb-4"></div>
+                    
+                    <!-- Match Details -->
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-gray-500 text-xs">Event</p>
+                                <p class="font-medium text-gray-900">{{ match.event.name }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-gray-500 text-xs">Date & Time</p>
+                                <p class="font-medium text-gray-900">{{ match.scheduled_time|date:"M d, Y \a\t H:i" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-gray-500 text-xs">Location</p>
+                                <p class="font-medium text-gray-900">{{ match.event.location }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <span class="status-badge inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold
+                            {% if match.status == 'scheduled' %}bg-blue-100 text-blue-700
+                            {% elif match.status == 'ongoing' %}bg-amber-100 text-amber-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
                             {{ match.get_status_display }}
                         </span>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+        </div>
+        
+        <!-- Table View -->
+        <div id="upcoming-table-container" class="hidden table-view">
+            <table class="w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-blue-50 to-blue-25">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Competitor 1</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">VS</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Competitor 2</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Event</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Location</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for match in upcoming_matches %}
+                    <tr class="hover:bg-blue-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 overflow-hidden">
+                                    {% if match.competitor1.profile.profile_image %}
+                                        <img src="{{ match.competitor1.profile.profile_image.url }}" alt="{{ match.competitor1.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-sm">
+                                            {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ match.competitor1.get_belt_rank_display }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="inline-block px-2 py-1 rounded text-xs font-bold bg-gradient-to-r from-blue-400 to-blue-600 text-white">VS</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 overflow-hidden">
+                                    {% if match.competitor2.profile.profile_image %}
+                                        <img src="{{ match.competitor2.profile.profile_image.url }}" alt="{{ match.competitor2.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-sm">
+                                            {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ match.competitor2.get_belt_rank_display }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ match.event.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ match.scheduled_time|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ match.event.location }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                                {% if match.status == 'scheduled' %}bg-blue-100 text-blue-700
+                                {% elif match.status == 'ongoing' %}bg-amber-100 text-amber-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ match.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% else %}
-        <div class="px-6 py-12 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No upcoming matches</h3>
-            <p class="mt-1 text-sm text-gray-500">You haven't been assigned to any upcoming matches yet.</p>
+        <div class="px-6 py-16 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <h3 class="mt-2 text-lg font-semibold text-gray-900">No upcoming matches</h3>
+            <p class="mt-2 text-gray-600">You haven't been assigned to any upcoming matches yet. Check back soon!</p>
         </div>
         {% endif %}
     </div>
 
-    <!-- Past Matches -->
+    <!-- Past Matches Section -->
     {% if past_matches %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Past Matches</h3>
-            <p class="text-sm text-gray-500">Completed matches you have judged</p>
+    <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        <!-- Section Header -->
+        <div class="section-header px-6 py-5">
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <h2 class="text-2xl font-bold">Past Matches</h2>
+                    <p class="text-blue-100 text-sm mt-1">Completed matches you have judged</p>
+                </div>
+                <div class="flex items-center space-x-2 bg-white/20 rounded-lg p-1">
+                    <button id="past-card-view" class="view-toggle-btn active px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2" onclick="togglePastView('card')">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"></path>
+                            <path d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"></path>
+                            <path d="M14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                        <span>Cards</span>
+                    </button>
+                    <button id="past-table-view" class="view-toggle-btn px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2" onclick="togglePastView('table')">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Table</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="divide-y divide-gray-200">
-            {% for match in past_matches %}
-            <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-900">
-                            {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
-                            vs
-                            {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
-                        </h4>
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ match.event.name }} • {{ match.scheduled_time|date:"M d, Y H:i" }}
-                        </p>
+        
+        <!-- Card View -->
+        <div id="past-card-container" class="fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                {% for match in past_matches %}
+                <div class="match-card rounded-lg p-6 border border-gray-200">
+                    <!-- Competitors -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <!-- Competitor 1 -->
+                            <div class="flex-1 text-center">
+                                <div class="competitor-badge w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg overflow-hidden">
+                                    {% if match.competitor1.profile.profile_image %}
+                                        <img src="{{ match.competitor1.profile.profile_image.url }}" alt="{{ match.competitor1.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-xl">
+                                            {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="text-sm font-bold text-gray-900">
+                                    {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
+                                </h3>
+                            </div>
+                            
+                            <!-- VS Divider -->
+                            <div class="vs-divider h-20">
+                                <span class="vs-text">VS</span>
+                            </div>
+                            
+                            <!-- Competitor 2 -->
+                            <div class="flex-1 text-center">
+                                <div class="competitor-badge w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg overflow-hidden">
+                                    {% if match.competitor2.profile.profile_image %}
+                                        <img src="{{ match.competitor2.profile.profile_image.url }}" alt="{{ match.competitor2.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-xl">
+                                            {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="text-sm font-bold text-gray-900">
+                                    {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
+                                </h3>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mt-2 sm:mt-0 flex items-center space-x-2">
+                    
+                    <!-- Divider -->
+                    <div class="border-t border-gray-200 mb-4"></div>
+                    
+                    <!-- Match Details & Result -->
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-gray-500 text-xs">Event</p>
+                                <p class="font-medium text-gray-900">{{ match.event.name }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-gray-500 text-xs">Date & Time</p>
+                                <p class="font-medium text-gray-900">{{ match.scheduled_time|date:"M d, Y \a\t H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Result -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
                         {% if match.winner %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
                             Winner: {{ match.winner.profile.user.get_full_name|default:match.winner.profile.user.username }}
                         </span>
                         {% else %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-300">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 112.5 8a6 6 0 0110.977 6.89z" clip-rule="evenodd"></path>
+                            </svg>
                             No result
                         </span>
                         {% endif %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+        </div>
+        
+        <!-- Table View -->
+        <div id="past-table-container" class="hidden table-view">
+            <table class="w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-indigo-50 to-purple-25">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">Competitor 1</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">VS</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">Competitor 2</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">Event</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">Winner</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for match in past_matches %}
+                    <tr class="hover:bg-indigo-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 overflow-hidden">
+                                    {% if match.competitor1.profile.profile_image %}
+                                        <img src="{{ match.competitor1.profile.profile_image.url }}" alt="{{ match.competitor1.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-sm">
+                                            {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <p class="font-medium text-gray-900 text-sm">{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="inline-block px-2 py-1 rounded text-xs font-bold bg-gradient-to-r from-indigo-400 to-indigo-600 text-white">VS</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 overflow-hidden">
+                                    {% if match.competitor2.profile.profile_image %}
+                                        <img src="{{ match.competitor2.profile.profile_image.url }}" alt="{{ match.competitor2.profile.user.get_full_name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <span class="text-white font-bold text-sm">
+                                            {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <p class="font-medium text-gray-900 text-sm">{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ match.event.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ match.scheduled_time|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if match.winner %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                                {{ match.winner.profile.user.get_full_name|default:match.winner.profile.user.username }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                No result
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
 </div>
+
+<script>
+    function toggleUpcomingView(view) {
+        const cardContainer = document.getElementById('upcoming-card-container');
+        const tableContainer = document.getElementById('upcoming-table-container');
+        const cardBtn = document.getElementById('upcoming-card-view');
+        const tableBtn = document.getElementById('upcoming-table-view');
+        
+        if (view === 'card') {
+            cardContainer.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+            cardBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+        } else {
+            cardContainer.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            cardBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }
+    }
+    
+    function togglePastView(view) {
+        const cardContainer = document.getElementById('past-card-container');
+        const tableContainer = document.getElementById('past-table-container');
+        const cardBtn = document.getElementById('past-card-view');
+        const tableBtn = document.getElementById('past-table-view');
+        
+        if (view === 'card') {
+            cardContainer.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+            cardBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+        } else {
+            cardContainer.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            cardBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }
+    }
+</script>
 {% endblock %}

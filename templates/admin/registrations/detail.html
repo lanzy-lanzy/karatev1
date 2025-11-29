@@ -5,86 +5,397 @@
 {% block page_title %}Registration Details{% endblock %}
 
 {% block content %}
+<style>
+    .detail-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 2px solid #3b82f6;
+    }
+    
+    .detail-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .detail-header h2 {
+        position: relative;
+        z-index: 10;
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .detail-header p {
+        position: relative;
+        z-index: 10;
+        color: #dbeafe;
+        margin-top: 0.5rem;
+    }
+    
+    .detail-content {
+        padding: 2rem;
+    }
+    
+    .detail-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .detail-section h3 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .detail-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .detail-field {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .detail-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #111827;
+    }
+    
+    .detail-divider {
+        border-top: 2px solid #e5e7eb;
+        margin: 2rem 0 0 0;
+        padding-top: 2rem;
+    }
+    
+    .document-box {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .document-box:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+    }
+    
+    .document-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .download-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .download-button:hover {
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1.5px solid currentColor;
+    }
+    
+    .status-badge.pending {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .status-badge.approved {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .status-badge.paid {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .status-badge.unpaid {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .status-badge.rejected {
+        background: linear-gradient(135deg, #fecaca, #fca5a5);
+        color: #dc2626;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border: 2px solid #7dd3fc;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+    }
+    
+    .info-box.rejection {
+        background: linear-gradient(135deg, #fecaca, #fca5a5);
+        border-color: #f87171;
+    }
+    
+    .info-box p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .info-box p.label {
+        color: #1e40af;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-box.rejection p.label {
+        color: #7f1d1d;
+    }
+    
+    .info-box p.content {
+        color: #0c4a6e;
+    }
+    
+    .info-box.rejection p.content {
+        color: #7f1d1d;
+    }
+    
+    .action-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .action-button.approve {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .action-button.approve:hover {
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .action-button.reject {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    
+    .action-button.reject:hover {
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .action-button.mark-paid {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .action-button.mark-paid:hover {
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-radius: 0.5rem;
+    }
+    
+    .back-link:hover {
+        color: #1e40af;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border: 1.5px solid #bfdbfe;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .checkbox-label:hover {
+        background: linear-gradient(135deg, #e0f2fe, #cffafe);
+    }
+    
+    .checkbox-label input {
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+        accent-color: #3b82f6;
+    }
+    
+    .textarea-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        background: white;
+        color: #111827;
+        resize: vertical;
+    }
+    
+    .textarea-field:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .textarea-field::placeholder {
+        color: #9ca3af;
+    }
+</style>
+
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Back Link -->
-    <a href="{% url 'admin_registrations' %}" class="inline-flex items-center text-gray-400 hover:text-white transition">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <a href="{% url 'admin_registrations' %}" class="back-link">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
         Back to Registrations
     </a>
 
     <!-- Registration Card -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+    <div class="detail-card">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-gray-750 to-gray-800 px-8 py-6 border-b border-gray-700">
+        <div class="detail-header">
             <div class="flex items-start justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">{{ registration.first_name }} {{ registration.last_name }}</h2>
-                    <p class="text-gray-400 mt-1">{{ registration.email }}</p>
+                    <h2>{{ registration.first_name }} {{ registration.last_name }}</h2>
+                    <p>{{ registration.email }}</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap justify-end">
                     {% if registration.status == 'pending' %}
-                        <span class="px-4 py-2 bg-yellow-900/50 text-yellow-300 rounded-lg text-sm font-semibold border border-yellow-700">Pending Review</span>
+                        <span class="status-badge pending">Pending Review</span>
                     {% elif registration.status == 'approved' %}
-                        <span class="px-4 py-2 bg-green-900/50 text-green-300 rounded-lg text-sm font-semibold border border-green-700">Approved</span>
+                        <span class="status-badge approved">Approved</span>
                     {% elif registration.status == 'rejected' %}
-                        <span class="px-4 py-2 bg-red-900/50 text-red-300 rounded-lg text-sm font-semibold border border-red-700">Rejected</span>
+                        <span class="status-badge rejected">Rejected</span>
                     {% endif %}
-                    
+                     
                     {% if registration.payment_status == 'paid' %}
-                        <span class="px-4 py-2 bg-green-900/50 text-green-300 rounded-lg text-sm font-semibold border border-green-700">Payment Paid</span>
+                        <span class="status-badge paid">Payment Paid</span>
                     {% else %}
-                        <span class="px-4 py-2 bg-red-900/50 text-red-300 rounded-lg text-sm font-semibold border border-red-700">Payment Unpaid</span>
+                        <span class="status-badge unpaid">Payment Unpaid</span>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <!-- Content -->
-        <div class="px-8 py-6 space-y-6">
+        <div class="detail-content space-y-6">
             <!-- Personal Information -->
-            <div>
-                <h3 class="text-lg font-semibold text-white mb-4">Personal Information</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p class="text-gray-400 text-sm">First Name</p>
-                        <p class="text-white font-medium mt-1">{{ registration.first_name }}</p>
+            <div class="detail-section">
+                <h3>Personal Information</h3>
+                <div class="detail-group">
+                    <div class="detail-field">
+                        <p class="detail-label">First Name</p>
+                        <p class="detail-value">{{ registration.first_name }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Last Name</p>
-                        <p class="text-white font-medium mt-1">{{ registration.last_name }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Last Name</p>
+                        <p class="detail-value">{{ registration.last_name }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Email</p>
-                        <p class="text-white font-medium mt-1">{{ registration.email }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Email</p>
+                        <p class="detail-value">{{ registration.email }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Phone</p>
-                        <p class="text-white font-medium mt-1">{{ registration.phone }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Phone</p>
+                        <p class="detail-value">{{ registration.phone }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Date of Birth</p>
-                        <p class="text-white font-medium mt-1">{{ registration.date_of_birth|date:"M d, Y" }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Date of Birth</p>
+                        <p class="detail-value">{{ registration.date_of_birth|date:"M d, Y" }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Belt Level</p>
-                        <p class="text-white font-medium mt-1">{{ registration.get_belt_level_display }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Belt Level</p>
+                        <p class="detail-value">{{ registration.get_belt_level_display }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Documents -->
-            <div class="border-t border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Submitted Documents</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-750 rounded-lg p-4 border border-gray-600">
-                        <p class="text-gray-400 text-sm mb-2">Medical Certificate</p>
+            <div class="detail-section detail-divider">
+                <h3>Submitted Documents</h3>
+                <div class="detail-group">
+                    <div class="document-box">
+                        <p class="document-label">Medical Certificate</p>
                         {% if registration.medical_certificate %}
                             <a href="{{ registration.medical_certificate.url }}" 
                                target="_blank"
-                               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               class="download-button">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 Download
@@ -93,13 +404,13 @@
                             <p class="text-gray-500 text-sm">Not uploaded</p>
                         {% endif %}
                     </div>
-                    <div class="bg-gray-750 rounded-lg p-4 border border-gray-600">
-                        <p class="text-gray-400 text-sm mb-2">Waiver Form</p>
+                    <div class="document-box">
+                        <p class="document-label">Waiver Form</p>
                         {% if registration.waiver %}
                             <a href="{{ registration.waiver.url }}" 
                                target="_blank"
-                               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               class="download-button">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 Download
@@ -112,79 +423,79 @@
             </div>
 
             <!-- Registration Status -->
-            <div class="border-t border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Registration Status</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p class="text-gray-400 text-sm">Status</p>
-                        <p class="text-white font-medium mt-1">{{ registration.get_status_display }}</p>
+            <div class="detail-section detail-divider">
+                <h3>Registration Status</h3>
+                <div class="detail-group">
+                    <div class="detail-field">
+                        <p class="detail-label">Status</p>
+                        <p class="detail-value">{{ registration.get_status_display }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Payment Status</p>
-                        <p class="text-white font-medium mt-1">{{ registration.get_payment_status_display }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Payment Status</p>
+                        <p class="detail-value">{{ registration.get_payment_status_display }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Submitted On</p>
-                        <p class="text-white font-medium mt-1">{{ registration.created_at|date:"M d, Y H:i" }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Submitted On</p>
+                        <p class="detail-value">{{ registration.created_at|date:"M d, Y H:i" }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Membership Fee</p>
-                        <p class="text-white font-medium mt-1">₱{{ registration.membership_fee }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Membership Fee</p>
+                        <p class="detail-value">₱{{ registration.membership_fee }}</p>
                     </div>
                 </div>
                 
                 {% if registration.reviewed_by %}
-                <div class="mt-6 pt-6 border-t border-gray-700">
-                    <p class="text-gray-400 text-sm">Reviewed By</p>
-                    <p class="text-white font-medium mt-1">{{ registration.reviewed_by.get_full_name|default:registration.reviewed_by.username }}</p>
-                    <p class="text-gray-400 text-sm mt-2">Reviewed On</p>
-                    <p class="text-white font-medium mt-1">{{ registration.reviewed_at|date:"M d, Y H:i" }}</p>
+                <div class="detail-divider">
+                    <p class="detail-label">Reviewed By</p>
+                    <p class="detail-value">{{ registration.reviewed_by.get_full_name|default:registration.reviewed_by.username }}</p>
+                    <p class="detail-label mt-2">Reviewed On</p>
+                    <p class="detail-value">{{ registration.reviewed_at|date:"M d, Y H:i" }}</p>
                 </div>
                 {% endif %}
                 
                 {% if registration.rejection_reason %}
-                <div class="mt-6 pt-6 border-t border-gray-700 bg-red-900/20 p-4 rounded-lg border border-red-700/30">
-                    <p class="text-red-300 text-sm font-semibold">Rejection Reason</p>
-                    <p class="text-gray-300 mt-2">{{ registration.rejection_reason }}</p>
+                <div class="info-box rejection detail-divider" style="margin-top: 1rem; padding-top: 1rem;">
+                    <p class="label">Rejection Reason</p>
+                    <p class="content">{{ registration.rejection_reason }}</p>
                 </div>
                 {% endif %}
             </div>
 
             <!-- Payment Details -->
             {% if payment %}
-            <div class="border-t border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Payment Record</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p class="text-gray-400 text-sm">Amount</p>
-                        <p class="text-white font-medium mt-1">₱{{ payment.amount }}</p>
+            <div class="detail-section detail-divider">
+                <h3>Payment Record</h3>
+                <div class="detail-group">
+                    <div class="detail-field">
+                        <p class="detail-label">Amount</p>
+                        <p class="detail-value">₱{{ payment.amount }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Payment Type</p>
-                        <p class="text-white font-medium mt-1">{{ payment.get_payment_type_display }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Payment Type</p>
+                        <p class="detail-value">{{ payment.get_payment_type_display }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Payment Method</p>
-                        <p class="text-white font-medium mt-1">{{ payment.get_payment_method_display }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Payment Method</p>
+                        <p class="detail-value">{{ payment.get_payment_method_display }}</p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Status</p>
-                        <p class="text-white font-medium mt-1">
+                    <div class="detail-field">
+                        <p class="detail-label">Status</p>
+                        <p class="detail-value">
                             {% if payment.status == 'completed' %}
-                                <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded text-sm border border-green-700">{{ payment.get_status_display }}</span>
+                                <span class="status-badge paid">{{ payment.get_status_display }}</span>
                             {% else %}
-                                <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 rounded text-sm border border-yellow-700">{{ payment.get_status_display }}</span>
+                                <span class="status-badge pending">{{ payment.get_status_display }}</span>
                             {% endif %}
                         </p>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Paid On</p>
-                        <p class="text-white font-medium mt-1">{{ payment.completed_at|date:"M d, Y H:i"|default:"Not yet paid" }}</p>
+                    <div class="detail-field">
+                        <p class="detail-label">Paid On</p>
+                        <p class="detail-value">{{ payment.completed_at|date:"M d, Y H:i"|default:"Not yet paid" }}</p>
                     </div>
                     {% if payment.notes %}
-                    <div class="md:col-span-2">
-                        <p class="text-gray-400 text-sm">Notes</p>
-                        <p class="text-gray-300 mt-1">{{ payment.notes }}</p>
+                    <div class="detail-field" style="grid-column: 1 / -1;">
+                        <p class="detail-label">Notes</p>
+                        <p class="detail-value">{{ payment.notes }}</p>
                     </div>
                     {% endif %}
                 </div>
@@ -192,15 +503,15 @@
             {% endif %}
 
             <!-- Admin Actions -->
-            <div class="border-t border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Admin Actions</h3>
+            <div class="detail-section detail-divider">
+                <h3>Admin Actions</h3>
                 
                 <!-- Payment Action for Approved Registrations -->
                 {% if registration.status == 'approved' and registration.payment_status == 'unpaid' %}
                 <form method="POST" class="space-y-4 mb-4">
                     {% csrf_token %}
                     <button type="submit" name="action" value="mark_payment_paid" 
-                            class="w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition">
+                            class="action-button mark-paid">
                         Mark Payment as Paid
                     </button>
                 </form>
@@ -214,32 +525,31 @@
                     <!-- Mark as Payment Paid -->
                     {% if registration.payment_status == 'unpaid' %}
                     <div>
-                        <label for="mark_payment" class="flex items-center space-x-2">
-                            <input type="checkbox" id="mark_payment" name="mark_payment" 
-                                   class="w-4 h-4 rounded bg-gray-700 border border-gray-600 text-red-600 focus:ring-red-500">
-                            <span class="text-white font-medium">Mark as Payment Paid</span>
+                        <label for="mark_payment" class="checkbox-label">
+                            <input type="checkbox" id="mark_payment" name="mark_payment">
+                            <span>Mark as Payment Paid</span>
                         </label>
                     </div>
                     {% endif %}
                     
                     <!-- Approve Button -->
                     <button type="submit" name="action" value="approve" 
-                            class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition">
+                            class="action-button approve">
                         Approve Registration
                     </button>
                     
                     <!-- Reject -->
                     <div class="space-y-2">
-                        <label for="rejection_reason" class="block text-sm font-medium text-gray-300">
+                        <label for="rejection_reason" class="block detail-label">
                             Rejection Reason (optional)
                         </label>
                         <textarea id="rejection_reason" name="rejection_reason" rows="3"
                                   placeholder="Explain why this registration is being rejected..."
-                                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                                  class="textarea-field"></textarea>
                     </div>
                     
                     <button type="submit" name="action" value="reject" 
-                            class="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
+                            class="action-button reject">
                         Reject Registration
                     </button>
                 </form>

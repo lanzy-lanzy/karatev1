@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .views import admin as admin_views
 from .views import admin_registrations as admin_reg_views
+from .views import admin_judges as admin_judges_views
 from .views import trainee as trainee_views
 from .views import judge as judge_views
 from .views import leaderboard as leaderboard_views
@@ -21,6 +22,16 @@ urlpatterns = [
     path('admin/registrations/<int:registration_id>/', admin_reg_views.registration_detail, name='admin_registration_detail'),
     path('admin/registrations/<int:registration_id>/approve/', admin_reg_views.registration_approve, name='admin_registration_approve'),
     path('admin/registrations/<int:registration_id>/reject/', admin_reg_views.registration_reject, name='admin_registration_reject'),
+    
+    # Judge Management URLs
+    path('admin/judges/', admin_judges_views.judge_list, name='admin_judges'),
+    path('admin/judges/partial/', admin_judges_views.judge_list_partial, name='admin_judge_list_partial'),
+    path('admin/judges/archived/', admin_judges_views.archived_judges_list, name='admin_archived_judges'),
+    path('admin/judges/archived/partial/', admin_judges_views.archived_judges_list_partial, name='admin_archived_judges_partial'),
+    path('admin/judges/add/', admin_judges_views.judge_add, name='admin_judge_add'),
+    path('admin/judges/<int:judge_id>/edit/', admin_judges_views.judge_edit, name='admin_judge_edit'),
+    path('admin/judges/<int:judge_id>/deactivate/', admin_judges_views.judge_deactivate, name='admin_judge_deactivate'),
+    path('admin/judges/<int:judge_id>/restore/', admin_judges_views.judge_restore, name='admin_judge_restore'),
     
     # Trainee Management URLs (Requirements: 3.1-3.6)
     path('admin/trainees/', admin_views.trainee_list, name='admin_trainees'),

@@ -71,18 +71,29 @@
     <form method="post" action="{% url 'admin_auto_matchmaking_confirm' %}">
         {% csrf_token %}
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900">Proposed Matches for {{ selected_event.name }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ proposed_matches|length }} matches generated</p>
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Proposed Matches for {{ selected_event.name }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ proposed_matches|length }} matches generated</p>
+            </div>
+            
+            <!-- Judge Selection Section -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Assign Judges to All Matches <span class="text-red-600">*</span> (Minimum 3)</label>
+                <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                    {% for judge in judges %}
+                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input type="checkbox" name="judges" value="{{ judge.id }}"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <span class="ml-3 text-sm text-gray-700">
+                            {{ judge.profile.user.get_full_name|default:judge.profile.user.username }}
+                            <span class="text-gray-500">({{ judge.get_certification_level_display }})</span>
+                        </span>
+                    </label>
+                    {% empty %}
+                    <p class="text-sm text-gray-500 italic">No active judges available</p>
+                    {% endfor %}
                 </div>
-                <button type="submit"
-                        class="px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Create Selected Matches
-                </button>
+                <p class="mt-1 text-xs text-gray-500">Select the judges who will officiate all auto-matched games. These judges will be assigned to each created match.</p>
             </div>
             
             <!-- Desktop Table View -->
@@ -189,6 +200,17 @@
                     </div>
                 </div>
                 {% endfor %}
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end">
+                <button type="submit"
+                        class="px-6 py-3 min-h-[44px] text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Create Selected Matches
+                </button>
             </div>
         </div>
     </form>

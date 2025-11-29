@@ -5,114 +5,384 @@
 {% block page_title %}User Management{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .stat-number.pending {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-number.approved {
+        background: linear-gradient(135deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-number.paid {
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-number.rejected {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .filter-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+    }
+    
+    .filter-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        background: white;
+        color: #111827;
+    }
+    
+    .filter-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-input::placeholder {
+        color: #9ca3af;
+    }
+    
+    .filter-button {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-button:hover {
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .table-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        overflow: hidden;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+    }
+    
+    .table-header th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    table tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        background: linear-gradient(to right, transparent, transparent);
+    }
+    
+    table tbody tr:hover {
+        border-left-color: #3b82f6;
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+    }
+    
+    table tbody td {
+        padding: 1rem 1.5rem;
+        font-size: 0.9rem;
+        color: #111827;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1.5px solid currentColor;
+    }
+    
+    .status-badge.pending {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .status-badge.approved {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .status-badge.paid {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .status-badge.unpaid {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .status-badge.rejected {
+        background: linear-gradient(135deg, #fecaca, #fca5a5);
+        color: #dc2626;
+    }
+    
+    .action-button {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .action-button.view {
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        color: white;
+    }
+    
+    .action-button.view:hover {
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+    }
+    
+    .action-button.approve {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .action-button.approve:hover {
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
+    }
+    
+    .action-button.reject {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    
+    .action-button.reject:hover {
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+    }
+    
+    .empty-state-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination a {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 1.5px solid #e5e7eb;
+        color: #111827;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    .pagination a:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.1);
+    }
+    
+    .pagination span {
+        color: #6b7280;
+        font-weight: 600;
+    }
+</style>
+
+<div class="space-y-8">
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
-            <p class="text-gray-400 text-sm">Pending Registrations</p>
-            <p class="text-3xl font-bold text-yellow-400 mt-1">{{ pending_count }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stat-card">
+            <p class="stat-label">Pending Registrations</p>
+            <p class="stat-number pending">{{ pending_count }}</p>
         </div>
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
-            <p class="text-gray-400 text-sm">Approved Members</p>
-            <p class="text-3xl font-bold text-green-400 mt-1">{{ approved_count }}</p>
+        <div class="stat-card">
+            <p class="stat-label">Approved Members</p>
+            <p class="stat-number approved">{{ approved_count }}</p>
         </div>
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
-            <p class="text-gray-400 text-sm">Paid Memberships</p>
-            <p class="text-3xl font-bold text-blue-400 mt-1">{{ paid_count }}</p>
+        <div class="stat-card">
+            <p class="stat-label">Paid Memberships</p>
+            <p class="stat-number paid">{{ paid_count }}</p>
         </div>
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
-            <p class="text-gray-400 text-sm">Rejected Registrations</p>
-            <p class="text-3xl font-bold text-red-400 mt-1">{{ rejected_count }}</p>
+        <div class="stat-card">
+            <p class="stat-label">Rejected Registrations</p>
+            <p class="stat-number rejected">{{ rejected_count }}</p>
         </div>
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+    <div class="filter-section">
         <form method="GET" class="flex flex-col md:flex-row gap-4">
             <input type="text" 
                    name="search" 
                    value="{{ request.GET.search }}"
                    placeholder="Search by name or email..."
-                   class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500">
-            
-            <select name="status" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                   class="filter-input flex-1">
+             
+            <select name="status" class="filter-input">
                 <option value="">All Statuses</option>
                 <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
                 <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
                 <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
             </select>
-            
-            <select name="payment_status" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+             
+            <select name="payment_status" class="filter-input">
                 <option value="">All Payment Status</option>
                 <option value="paid" {% if request.GET.payment_status == 'paid' %}selected{% endif %}>Paid</option>
                 <option value="unpaid" {% if request.GET.payment_status == 'unpaid' %}selected{% endif %}>Unpaid</option>
             </select>
-            
-            <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
+             
+            <button type="submit" class="filter-button">
                 Filter
             </button>
         </form>
     </div>
 
     <!-- Registrations Table -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+    <div class="table-container">
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead>
-                    <tr class="bg-gray-750 border-b border-gray-700">
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Phone</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Payment</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Submitted</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
+                <thead class="table-header">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-700">
+                <tbody>
                     {% if registrations %}
                         {% for registration in registrations %}
-                        <tr class="hover:bg-gray-750 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        <tr>
+                            <td class="font-medium">
                                 {{ registration.first_name }} {{ registration.last_name }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            <td>
                                 {{ registration.email }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            <td>
                                 {{ registration.phone }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td>
                                 {% if registration.status == 'pending' %}
-                                    <span class="px-3 py-1 bg-yellow-900/50 text-yellow-300 rounded-full text-xs font-semibold border border-yellow-700">Pending</span>
+                                    <span class="status-badge pending">Pending</span>
                                 {% elif registration.status == 'approved' %}
-                                    <span class="px-3 py-1 bg-green-900/50 text-green-300 rounded-full text-xs font-semibold border border-green-700">Approved</span>
+                                    <span class="status-badge approved">Approved</span>
                                 {% elif registration.status == 'rejected' %}
-                                    <span class="px-3 py-1 bg-red-900/50 text-red-300 rounded-full text-xs font-semibold border border-red-700">Rejected</span>
+                                    <span class="status-badge rejected">Rejected</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td>
                                 {% if registration.payment_status == 'paid' %}
-                                    <span class="px-3 py-1 bg-green-900/50 text-green-300 rounded-full text-xs font-semibold border border-green-700">Paid</span>
+                                    <span class="status-badge paid">Paid</span>
                                 {% else %}
-                                    <span class="px-3 py-1 bg-red-900/50 text-red-300 rounded-full text-xs font-semibold border border-red-700">Unpaid</span>
+                                    <span class="status-badge unpaid">Unpaid</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            <td>
                                 {{ registration.created_at|date:"M d, Y" }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <td class="space-x-2 flex">
                                 <a href="{% url 'admin_registration_detail' registration.id %}" 
-                                   class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">
+                                   class="action-button view">
                                     View
                                 </a>
                                 {% if registration.status == 'pending' %}
                                     <a href="{% url 'admin_registration_approve' registration.id %}" 
-                                       class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold">
+                                       class="action-button approve">
                                         Approve
                                     </a>
                                     <a href="{% url 'admin_registration_reject' registration.id %}" 
-                                       class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold">
+                                       class="action-button reject">
                                         Reject
                                     </a>
                                 {% endif %}
@@ -121,11 +391,16 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                <h3 class="text-gray-400">No registrations found</h3>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900">No registrations found</h3>
+                                    <p class="mt-2 text-gray-600">Try adjusting your search or filter criteria.</p>
+                                </div>
                             </td>
                         </tr>
                     {% endif %}
@@ -136,17 +411,17 @@
 
     <!-- Pagination -->
     {% if is_paginated %}
-    <div class="flex justify-center items-center space-x-2">
+    <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">First</a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Previous</a>
+            <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
         {% endif %}
-        
-        <span class="text-gray-400">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        
+         
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Last</a>
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Last</a>
         {% endif %}
     </div>
     {% endif %}

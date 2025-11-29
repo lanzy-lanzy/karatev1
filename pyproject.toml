@@ -16,8 +16,3 @@ dependencies = [
 uvmm = "manage:makemigrations"
 uvm = "manage:migrate"
 uvr = "manage:runserver"
-
-[tool.uv.scripts]
-uvmm = "python manage.py makemigrations"
-uvm = "python manage.py migrate"
-uvr = "python manage.py runserver"

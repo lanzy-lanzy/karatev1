@@ -5,115 +5,377 @@
 {% block page_title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid transparent;
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .stat-icon.trainees {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+    
+    .stat-icon.events {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .stat-icon.payments {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .stat-icon.matches {
+        background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+        color: #7c3aed;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .activity-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .activity-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .activity-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .activity-title {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .activity-title h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .activity-title p {
+        color: #dbeafe;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .activity-item {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        border-left: 4px solid #3b82f6;
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+    }
+    
+    .activity-item:hover {
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.1), transparent);
+        border-left-color: #1e40af;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .activity-icon.registration {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .activity-icon.payment {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+    
+    .activity-icon.match-result {
+        background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+        color: #7c3aed;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-message {
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
+        font-size: 0.95rem;
+    }
+    
+    .activity-date {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+    }
+    
+    .empty-state-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+    
+    .action-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .action-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .action-icon.trainees {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+    
+    .action-icon.events {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .action-icon.reports {
+        background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+        color: #7c3aed;
+    }
+    
+    .action-text h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .action-text p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0.25rem 0 0 0;
+    }
+    
+    @media (max-width: 768px) {
+        .stat-card {
+            flex-direction: row;
+        }
+    }
+</style>
+
+<div class="space-y-8">
     <!-- Metrics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total Trainees Card -->
-        <a href="{% url 'admin_trainees' %}" 
-           class="bg-gradient-to-br from-blue-500 to-blue-600 bg-opacity-10 rounded-2xl border border-blue-500 border-opacity-30 p-8 hover:border-opacity-50 transition-all feature-card cursor-pointer">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-blue-300">Total Trainees</p>
-                    <p class="text-4xl font-bold text-blue-100 mt-2">{{ total_trainees }}</p>
-                    <p class="text-xs text-blue-300 mt-2">Registered members</p>
-                </div>
-                <div class="text-5xl">👥</div>
+        <a href="{% url 'admin_trainees' %}" class="stat-card">
+            <div class="stat-icon trainees">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="stat-label">Total Trainees</p>
+                <p class="stat-number">{{ total_trainees }}</p>
             </div>
         </a>
 
         <!-- Active Events Card -->
-        <a href="{% url 'admin_events' %}" 
-           class="bg-gradient-to-br from-green-500 to-green-600 bg-opacity-10 rounded-2xl border border-green-500 border-opacity-30 p-8 hover:border-opacity-50 transition-all feature-card cursor-pointer">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-green-300">Active Events</p>
-                    <p class="text-4xl font-bold text-green-100 mt-2">{{ active_events }}</p>
-                    <p class="text-xs text-green-300 mt-2">Ongoing competitions</p>
-                </div>
-                <div class="text-5xl">📅</div>
+        <a href="{% url 'admin_events' %}" class="stat-card">
+            <div class="stat-icon events">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="stat-label">Active Events</p>
+                <p class="stat-number">{{ active_events }}</p>
             </div>
         </a>
 
         <!-- Pending Payments Card -->
-        <a href="{% url 'admin_payments' %}" 
-           class="bg-gradient-to-br from-yellow-500 to-yellow-600 bg-opacity-10 rounded-2xl border border-yellow-500 border-opacity-30 p-8 hover:border-opacity-50 transition-all feature-card cursor-pointer">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-yellow-300">Pending Payments</p>
-                    <p class="text-4xl font-bold text-yellow-100 mt-2">{{ pending_payments }}</p>
-                    <p class="text-xs text-yellow-300 mt-2">Awaiting processing</p>
-                </div>
-                <div class="text-5xl">💳</div>
+        <a href="{% url 'admin_payments' %}" class="stat-card">
+            <div class="stat-icon payments">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="stat-label">Pending Payments</p>
+                <p class="stat-number">{{ pending_payments }}</p>
             </div>
         </a>
 
         <!-- Upcoming Matches Card -->
-        <a href="{% url 'admin_matchmaking' %}" 
-           class="bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-10 rounded-2xl border border-purple-500 border-opacity-30 p-8 hover:border-opacity-50 transition-all feature-card cursor-pointer">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-purple-300">Upcoming Matches</p>
-                    <p class="text-4xl font-bold text-purple-100 mt-2">{{ upcoming_matches }}</p>
-                    <p class="text-xs text-purple-300 mt-2">Scheduled bouts</p>
-                </div>
-                <div class="text-5xl">🥊</div>
+        <a href="{% url 'admin_matchmaking' %}" class="stat-card">
+            <div class="stat-icon matches">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="stat-label">Upcoming Matches</p>
+                <p class="stat-number">{{ upcoming_matches }}</p>
             </div>
         </a>
     </div>
 
     <!-- Recent Activity Section -->
-    <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden feature-card">
-        <div class="px-6 py-4 border-b border-gray-700 bg-gradient-to-r from-gray-750 to-gray-800">
-            <h3 class="text-lg font-bold text-white">Recent Activity</h3>
-            <p class="text-sm text-gray-400 mt-1">Latest registrations, payments, and match results</p>
+    <div class="activity-section">
+        <div class="activity-header">
+            <div class="activity-title">
+                <h3>Recent Activity</h3>
+                <p>Latest registrations, payments, and match results</p>
+            </div>
         </div>
-        <div class="divide-y divide-gray-700">
+
+        <div>
             {% if recent_activity %}
                 {% for activity in recent_activity %}
-                <div class="px-6 py-4 flex items-center space-x-4 hover:bg-gray-750 transition-colors">
-                    <!-- Activity Icon -->
-                    <div class="flex-shrink-0">
-                        {% if activity.type == 'registration' %}
-                        <div class="w-12 h-12 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                            </svg>
+                <div class="activity-item">
+                    <div class="flex items-start gap-4">
+                        <!-- Activity Icon -->
+                        <div class="flex-shrink-0">
+                            {% if activity.type == 'registration' %}
+                            <div class="activity-icon registration">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                </svg>
+                            </div>
+                            {% elif activity.type == 'payment' %}
+                            <div class="activity-icon payment">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            {% elif activity.type == 'match_result' %}
+                            <div class="activity-icon match-result">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                            </div>
+                            {% else %}
+                            <div class="activity-icon">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% elif activity.type == 'payment' %}
-                        <div class="w-12 h-12 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                        
+                        <!-- Activity Content -->
+                        <div class="activity-content">
+                            <p class="activity-message">{{ activity.message }}</p>
+                            <p class="activity-date">{{ activity.date }}</p>
                         </div>
-                        {% elif activity.type == 'match_result' %}
-                        <div class="w-12 h-12 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                            </svg>
-                        </div>
-                        {% else %}
-                        <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Activity Content -->
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-white truncate">{{ activity.message }}</p>
-                        <p class="text-sm text-gray-400 mt-1">{{ activity.date }}</p>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="px-6 py-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-semibold text-gray-300">No recent activity</h3>
-                    <p class="mt-1 text-sm text-gray-400">Activity will appear here as members register and events occur.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">No recent activity</h3>
+                    <p class="mt-2 text-gray-600">Activity will appear here as members register and events occur.</p>
                 </div>
             {% endif %}
         </div>
@@ -121,48 +383,39 @@
 
     <!-- Quick Actions Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="{% url 'admin_trainees' %}" 
-           class="bg-gray-800 rounded-2xl border border-gray-700 p-6 hover:border-blue-500 hover:border-opacity-50 transition-all feature-card group">
-            <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 bg-blue-500 bg-opacity-20 rounded-xl flex items-center justify-center group-hover:bg-opacity-30 transition-colors">
-                    <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold text-white">Add New Trainee</h4>
-                    <p class="text-sm text-gray-400">Register a new member</p>
-                </div>
+        <a href="{% url 'admin_trainees' %}" class="action-card">
+            <div class="action-icon trainees">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+            </div>
+            <div class="action-text">
+                <h4>Add New Trainee</h4>
+                <p>Register a new member</p>
             </div>
         </a>
 
-        <a href="{% url 'admin_events' %}" 
-           class="bg-gray-800 rounded-2xl border border-gray-700 p-6 hover:border-green-500 hover:border-opacity-50 transition-all feature-card group">
-            <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 bg-green-500 bg-opacity-20 rounded-xl flex items-center justify-center group-hover:bg-opacity-30 transition-colors">
-                    <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold text-white">Create Event</h4>
-                    <p class="text-sm text-gray-400">Schedule a new competition</p>
-                </div>
+        <a href="{% url 'admin_events' %}" class="action-card">
+            <div class="action-icon events">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </div>
+            <div class="action-text">
+                <h4>Create Event</h4>
+                <p>Schedule a new competition</p>
             </div>
         </a>
 
-        <a href="{% url 'admin_reports' %}" 
-           class="bg-gray-800 rounded-2xl border border-gray-700 p-6 hover:border-purple-500 hover:border-opacity-50 transition-all feature-card group">
-            <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 bg-purple-500 bg-opacity-20 rounded-xl flex items-center justify-center group-hover:bg-opacity-30 transition-colors">
-                    <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold text-white">View Reports</h4>
-                    <p class="text-sm text-gray-400">Generate club analytics</p>
-                </div>
+        <a href="{% url 'admin_reports' %}" class="action-card">
+            <div class="action-icon reports">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <div class="action-text">
+                <h4>View Reports</h4>
+                <p>Generate club analytics</p>
             </div>
         </a>
     </div>

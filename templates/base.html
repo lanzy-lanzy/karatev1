@@ -61,7 +61,7 @@
 
         /* Gradient Text for Headings */
         .gradient-text {
-            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -91,6 +91,86 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Header Styles */
+        .header-top {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, #3b82f6, #1e40af) 1;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .header-btn {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .header-btn:hover {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .user-avatar {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-avatar::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .user-menu {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-menu-item {
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 1.25rem;
+        }
+
+        .user-menu-item:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .user-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: linear-gradient(180deg, #3b82f6, #1e40af);
+            transition: height 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .user-menu-item:hover::before {
+            height: 20px;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -148,17 +228,17 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
-            <header class="bg-gray-800 shadow-sm border-b-2 border-gray-700 px-4 py-4 flex items-center justify-between lg:px-6" style="height: 70px;">
+            <header class="header-top px-4 py-4 flex items-center justify-between lg:px-6" style="height: 70px;">
                 <!-- Mobile menu button -->
                 <button @click="sidebarOpen = !sidebarOpen" 
-                        class="lg:hidden p-2 rounded-md text-gray-400 hover:bg-gray-700 focus:outline-none min-w-[44px] min-h-[44px] flex items-center justify-center">
+                        class="lg:hidden p-2 rounded-lg text-gray-400 header-btn focus:outline-none min-w-[44px] min-h-[44px] flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
                 
                 <div class="flex-1 lg:flex-none">
-                    <h1 class="text-lg font-semibold gradient-text">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <h1 class="header-title">{% block page_title %}Dashboard{% endblock %}</h1>
                 </div>
                 
                 <!-- Notification Widget -->
@@ -169,33 +249,44 @@
                 <!-- User menu -->
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open" 
-                            class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-700 min-w-[44px] min-h-[44px]">
+                            class="flex items-center space-x-3 p-2 rounded-lg header-btn min-w-[44px] min-h-[44px]">
                         <!-- Profile Picture or Avatar -->
-                        {% if user.profile.profile_image %}
-                            <img src="{{ user.profile.profile_image.url }}" 
-                                 alt="{{ user.get_full_name }}"
-                                 class="w-8 h-8 rounded-full object-cover border border-red-500">
-                        {% else %}
-                            <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center">
-                                <span class="text-white text-sm font-medium">
-                                    {% if user.first_name %}{{ user.first_name.0 }}{% else %}U{% endif %}
-                                </span>
-                            </div>
-                        {% endif %}
+                        <div class="user-avatar">
+                            {% if user.profile.profile_image %}
+                                <img src="{{ user.profile.profile_image.url }}" 
+                                     alt="{{ user.get_full_name }}"
+                                     class="w-9 h-9 rounded-full object-cover border-2 border-blue-500 shadow-lg">
+                            {% else %}
+                                <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-lg">
+                                    <span class="text-white text-sm font-bold">
+                                        {% if user.first_name %}{{ user.first_name.0 }}{% else %}U{% endif %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
                         
                         <!-- Full Name instead of Username -->
-                        <span class="hidden sm:block text-sm text-white font-medium">
+                        <span class="hidden sm:block text-sm text-white font-semibold">
                             {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
                         </span>
+                        
+                        <!-- Dropdown Arrow -->
+                        <svg class="w-4 h-4 text-gray-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
                     </button>
                     <div x-show="open" 
                          @click.away="open = false"
                          x-transition
-                         class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-700">
-                        <a href="{% url 'trainee_profile' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">View Profile</a>
-                        <a href="{% url 'trainee_profile_edit' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Edit Profile</a>
-                        <div class="border-t border-gray-700"></div>
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Logout</a>
+                         class="user-menu absolute right-0 mt-2 w-56 rounded-lg py-1 z-50">
+                        <div class="px-4 py-3 border-b border-gray-700">
+                            <p class="text-sm font-semibold text-white">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ user.email }}</p>
+                        </div>
+                        <a href="{% url 'trainee_profile' %}" class="user-menu-item block px-4 py-2.5 text-sm text-gray-300">View Profile</a>
+                        <a href="{% url 'trainee_profile_edit' %}" class="user-menu-item block px-4 py-2.5 text-sm text-gray-300">Edit Profile</a>
+                        <div class="border-t border-gray-700 my-1"></div>
+                        <a href="{% url 'logout' %}" class="user-menu-item block px-4 py-2.5 text-sm text-red-400 hover:text-red-300">Logout</a>
                     </div>
                 </div>
             </header>

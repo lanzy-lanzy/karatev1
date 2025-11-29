@@ -5,177 +5,487 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<style>
+    .profile-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 20px 50px rgba(59, 130, 246, 0.15);
+    }
+    
+    .avatar {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .avatar::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .profile-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        border: 1.5px solid currentColor;
+    }
+    
+    .badge.certified {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+    
+    .badge.active {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .quick-stats {
+        display: flex;
+        gap: 2rem;
+        margin-left: auto;
+    }
+    
+    .stat {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid transparent;
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .stat-icon.upcoming {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+    
+    .stat-icon.judged {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .stat-icon.pending {
+        background: linear-gradient(135deg, #fed7aa, #fecaca);
+        color: #ea580c;
+    }
+    
+    .stat-content {
+        flex: 1;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0.25rem 0 0 0;
+    }
+    
+    .history-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .history-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .history-title {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .history-title h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .history-title p {
+        color: #dbeafe;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .view-all-btn {
+        position: relative;
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1.5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .view-all-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .match-item {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        border-left: 4px solid #3b82f6;
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+    }
+    
+    .match-item:hover {
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.1), transparent);
+        border-left-color: #1e40af;
+    }
+    
+    .match-item:last-child {
+        border-bottom: none;
+    }
+    
+    .match-title {
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .match-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+    
+    .match-result {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1.5px solid currentColor;
+    }
+    
+    .match-result.winner {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+    }
+    
+    .match-result.no-result {
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        color: #6b7280;
+    }
+    
+    .match-result::before {
+        content: '';
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 50%;
+        background-color: currentColor;
+        opacity: 0.7;
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+    }
+    
+    .empty-state-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .quick-stats {
+            margin-left: 0;
+            margin-top: 1.5rem;
+        }
+        
+        .profile-card {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="space-y-8">
     <!-- Profile & Certification Card -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+    <div class="profile-card">
+        <div class="flex flex-col lg:flex-row lg:items-start gap-6">
             <!-- Profile Image -->
             <div class="flex-shrink-0">
-                {% if judge.profile.profile_image %}
-                <img src="{{ judge.profile.profile_image.url }}" 
-                     alt="Profile" 
-                     class="w-20 h-20 rounded-full object-cover">
-                {% else %}
-                <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
-                    <span class="text-white text-2xl font-bold">
+                <div class="avatar w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                    {% if judge.profile.profile_image %}
+                    <img src="{{ judge.profile.profile_image.url }}" 
+                         alt="Profile" 
+                         class="w-full h-full object-cover">
+                    {% else %}
+                    <span class="text-white text-3xl font-bold">
                         {{ judge.profile.user.first_name|slice:":1"|default:judge.profile.user.username|slice:":1"|upper }}
                     </span>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
             
             <!-- Profile Info -->
             <div class="flex-1">
-                <h2 class="text-xl font-bold text-gray-900">
+                <h2 class="profile-title">
                     {{ judge.profile.user.get_full_name|default:judge.profile.user.username }}
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">Official Judge</p>
-                <div class="mt-2 flex flex-wrap gap-3">
+                <p class="text-blue-600 text-sm font-semibold mt-1">Official Judge</p>
+                
+                <div class="mt-3 flex flex-wrap gap-2">
                     <!-- Certification Level Badge -->
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {% if judge.certification_level == 'international' %}bg-purple-100 text-purple-800
-                        {% elif judge.certification_level == 'national' %}bg-blue-100 text-blue-800
-                        {% else %}bg-green-100 text-green-800{% endif %}">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    <span class="badge certified">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                         </svg>
                         {{ judge.get_certification_level_display }} Certified
                     </span>
+                    
                     <!-- Status Badge -->
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {% if judge.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <span class="badge {% if judge.is_active %}active{% else %}badge-inactive{% endif %}">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
                         {% if judge.is_active %}Active{% else %}Inactive{% endif %}
                     </span>
                 </div>
-                <p class="text-sm text-gray-500 mt-2">
-                    <span class="inline-flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        Certified since {{ judge.certification_date|date:"M d, Y" }}
-                    </span>
+                
+                <p class="text-sm text-gray-600 mt-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Certified since {{ judge.certification_date|date:"M d, Y" }}
                 </p>
             </div>
 
             <!-- Quick Stats -->
-            <div class="flex space-x-6 text-center">
-                <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ upcoming_matches_count }}</p>
-                    <p class="text-sm text-gray-500">Upcoming</p>
+            <div class="quick-stats">
+                <div class="stat">
+                    <div class="stat-value">{{ upcoming_matches_count }}</div>
+                    <div class="stat-label">Upcoming</div>
                 </div>
-                <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ total_matches_judged }}</p>
-                    <p class="text-sm text-gray-500">Judged</p>
+                <div class="stat">
+                    <div class="stat-value">{{ total_matches_judged }}</div>
+                    <div class="stat-label">Judged</div>
                 </div>
-                {% if pending_results_count > 0 %}
-                <div>
-                    <p class="text-2xl font-bold text-yellow-600">{{ pending_results_count }}</p>
-                    <p class="text-sm text-gray-500">Pending</p>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Stats Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Upcoming Matches Card -->
-        <a href="{% url 'judge_matches' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 bg-blue-100 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Upcoming Matches</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ upcoming_matches_count }}</p>
-                </div>
+        <a href="{% url 'judge_matches' %}" class="stat-card">
+            <div class="stat-icon upcoming">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">Upcoming Matches</p>
+                <p class="stat-number">{{ upcoming_matches_count }}</p>
             </div>
         </a>
 
         <!-- Total Judged Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-green-100 rounded-lg">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Matches Judged</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ total_matches_judged }}</p>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon judged">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">Matches Judged</p>
+                <p class="stat-number">{{ total_matches_judged }}</p>
             </div>
         </div>
 
         <!-- Pending Results Card -->
-        <a href="{% url 'judge_results' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 {% if pending_results_count > 0 %}bg-yellow-100{% else %}bg-gray-100{% endif %} rounded-lg">
-                    <svg class="w-6 h-6 {% if pending_results_count > 0 %}text-yellow-600{% else %}text-gray-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Pending Results</p>
-                    <p class="text-2xl font-bold {% if pending_results_count > 0 %}text-yellow-600{% else %}text-gray-900{% endif %}">{{ pending_results_count }}</p>
-                </div>
+        <a href="{% url 'judge_results' %}" class="stat-card">
+            <div class="stat-icon pending">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">Pending Results</p>
+                <p class="stat-number">{{ pending_results_count }}</p>
             </div>
         </a>
     </div>
 
     <!-- Recent Judging History -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">Recent Judging History</h3>
-                <p class="text-sm text-gray-500">Your latest judged matches</p>
+    <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        <div class="history-header">
+            <div class="history-title">
+                <h3>Recent Judging History</h3>
+                <p>Your latest judged matches</p>
             </div>
-            <a href="{% url 'judge_results' %}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View All</a>
+            <a href="{% url 'judge_results' %}" class="view-all-btn">
+                View All
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
         </div>
-        <div class="divide-y divide-gray-200">
+
+        <div>
             {% if recent_judged_matches %}
                 {% for match in recent_judged_matches %}
-                <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-900">
-                                {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
-                                vs
-                                {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
-                            </h4>
-                            <p class="text-sm text-gray-500 mt-1">{{ match.event.name }}</p>
-                            <p class="text-sm text-gray-500">
-                                <span class="inline-flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    {{ match.scheduled_time|date:"M d, Y H:i" }}
-                                </span>
-                            </p>
-                        </div>
-                        <div class="text-right">
-                            {% if match.winner %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Winner: {{ match.winner.profile.user.get_full_name|default:match.winner.profile.user.username }}
-                            </span>
-                            {% else %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                No result
-                            </span>
-                            {% endif %}
-                        </div>
+                <div class="match-item">
+                    <p class="match-title">
+                        {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
+                        <span class="text-gray-400">vs</span>
+                        {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
+                    </p>
+                    <div class="match-meta">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {{ match.event.name }}
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ match.scheduled_time|date:"M d, Y H:i" }}
+                        </span>
+                    </div>
+                    <div>
+                        {% if match.winner %}
+                        <span class="match-result winner">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            Winner: {{ match.winner.profile.user.get_full_name|default:match.winner.profile.user.username }}
+                        </span>
+                        {% else %}
+                        <span class="match-result no-result">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 112.5 8a6 6 0 0110.977 6.89z" clip-rule="evenodd"></path>
+                            </svg>
+                            No result
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="px-6 py-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No judging history</h3>
-                    <p class="mt-1 text-sm text-gray-500">Your judged matches will appear here.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">No judging history</h3>
+                    <p class="mt-2 text-gray-600">Your judged matches will appear here.</p>
                 </div>
             {% endif %}
         </div>

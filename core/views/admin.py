@@ -1159,6 +1159,8 @@ def match_add(request):
             errors['competitor2'] = 'Competitors must be different'
         if not scheduled_time:
             errors['scheduled_time'] = 'Scheduled time is required'
+        if len([j for j in judge_ids if j]) < 3:
+            errors['judges'] = 'At least 3 judges must be selected'
         
         if errors:
             events = Event.objects.filter(status__in=['open', 'closed', 'ongoing']).order_by('-event_date')
@@ -1170,7 +1172,7 @@ def match_add(request):
                 'competitor1': {'value': competitor1_id, 'errors': [errors.get('competitor1')] if errors.get('competitor1') else []},
                 'competitor2': {'value': competitor2_id, 'errors': [errors.get('competitor2')] if errors.get('competitor2') else []},
                 'scheduled_time': {'value': scheduled_time, 'errors': [errors.get('scheduled_time')] if errors.get('scheduled_time') else []},
-                'judges': {'value': judge_ids, 'errors': []},
+                'judges': {'value': judge_ids, 'errors': [errors.get('judges')] if errors.get('judges') else []},
                 'notes': {'value': notes, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
@@ -1268,6 +1270,8 @@ def match_edit(request, match_id):
             errors['competitor2'] = 'Competitors must be different'
         if not scheduled_time:
             errors['scheduled_time'] = 'Scheduled time is required'
+        if len([j for j in judge_ids if j]) < 3:
+            errors['judges'] = 'At least 3 judges must be selected'
         
         if errors:
             events = Event.objects.filter(status__in=['open', 'closed', 'ongoing']).order_by('-event_date')
@@ -1279,7 +1283,7 @@ def match_edit(request, match_id):
                 'competitor1': {'value': competitor1_id, 'errors': [errors.get('competitor1')] if errors.get('competitor1') else []},
                 'competitor2': {'value': competitor2_id, 'errors': [errors.get('competitor2')] if errors.get('competitor2') else []},
                 'scheduled_time': {'value': scheduled_time, 'errors': [errors.get('scheduled_time')] if errors.get('scheduled_time') else []},
-                'judges': {'value': judge_ids, 'errors': []},
+                'judges': {'value': judge_ids, 'errors': [errors.get('judges')] if errors.get('judges') else []},
                 'notes': {'value': notes, 'errors': []},
                 'status': {'value': status, 'errors': []},
             }
@@ -1563,13 +1567,14 @@ def auto_matchmaking(request):
     Auto-matchmaking view - select event and generate proposed matches.
     Requirements: 5.3, 5.4
     """
-    from core.models import Event
+    from core.models import Event, Judge
     from core.services.matchmaking import MatchmakingService
     
     events = Event.objects.filter(
         status__in=['open', 'closed', 'ongoing']
     ).order_by('-event_date')
     
+    judges = Judge.objects.filter(is_active=True).select_related('profile__user')
     proposed_matches = []
     selected_event = None
     
@@ -1595,6 +1600,7 @@ def auto_matchmaking(request):
     
     context = {
         'events': events,
+        'judges': judges,
         'proposed_matches': proposed_matches,
         'selected_event': selected_event,
     }
@@ -1608,12 +1614,19 @@ def auto_matchmaking_confirm(request):
     Confirm and create matches from auto-matchmaking proposals.
     Requirements: 5.4
     """
-    from core.models import Match, Event
+    from core.models import Match, Event, MatchJudge
     from datetime import datetime, timedelta
     
     if request.method == 'POST':
         event_id = request.session.get('auto_match_event_id')
         proposed_matches = request.session.get('proposed_matches', [])
+        judge_ids = request.POST.getlist('judges')
+        
+        # Validate that at least 3 judges are selected
+        valid_judge_ids = [j for j in judge_ids if j]
+        if len(valid_judge_ids) < 3:
+            messages.error(request, 'At least 3 judges must be selected for auto-matched games.')
+            return redirect('admin_auto_matchmaking')
         
         if event_id and proposed_matches:
             event = Event.objects.get(id=event_id)
@@ -1633,12 +1646,17 @@ def auto_matchmaking_confirm(request):
                         # Schedule matches 30 minutes apart
                         scheduled_time = base_time + timedelta(minutes=30 * created_count)
                         
-                        Match.objects.create(
+                        match = Match.objects.create(
                             event_id=event_id,
                             competitor1_id=pm['competitor1_id'],
                             competitor2_id=pm['competitor2_id'],
                             scheduled_time=scheduled_time
                         )
+                        
+                        # Assign judges to the match
+                        for judge_id in valid_judge_ids:
+                            MatchJudge.objects.create(match=match, judge_id=judge_id)
+                        
                         created_count += 1
                 except (ValueError, IndexError):
                     continue
@@ -1649,7 +1667,7 @@ def auto_matchmaking_confirm(request):
             if 'auto_match_event_id' in request.session:
                 del request.session['auto_match_event_id']
             
-            messages.success(request, f'{created_count} matches have been created successfully.')
+            messages.success(request, f'{created_count} matches have been created successfully with {len(valid_judge_ids)} judges assigned.')
         
         return redirect('admin_matchmaking')
     

@@ -52,6 +52,7 @@ class MatchmakingService:
     # Constraints for auto-matchmaking
     MAX_WEIGHT_DIFF = Decimal('5.0')  # kg
     MAX_AGE_DIFF = 3  # years
+    MIN_JUDGES_REQUIRED = 3  # Minimum judges per match
     
     def auto_match(self, event_id: int) -> List[ProposedMatch]:
         """
@@ -187,6 +188,10 @@ class MatchmakingService:
         """
         match = Match.objects.get(id=match_id)
         event = match.event
+        
+        # Validate minimum number of judges
+        if len(judge_ids) < self.MIN_JUDGES_REQUIRED:
+            return False
         
         # Validate each judge
         for judge_id in judge_ids:

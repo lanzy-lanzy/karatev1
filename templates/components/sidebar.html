@@ -1,3 +1,102 @@
+<style>
+    /* Sidebar Styles */
+    .sidebar-container {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        border-right: 2px solid transparent;
+        border-image: linear-gradient(180deg, #3b82f6, #1e40af, #3b82f6) 1;
+    }
+
+    .sidebar-header {
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .logo-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border-radius: 0.75rem;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .logo-icon::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff 0%, #dbeafe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.05em;
+    }
+
+    .close-btn {
+        transition: all 0.3s ease;
+        border-radius: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .close-btn:hover {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+    }
+
+    .nav-container {
+        margin-top: 1.5rem;
+        padding: 0 0.75rem;
+    }
+
+    .nav-section {
+        padding: 0.75rem 0;
+        border-radius: 0.75rem;
+    }
+
+    .nav-section:not(:last-child) {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Sidebar Overlay */
+    .sidebar-overlay {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    /* Sidebar Animation */
+    .sidebar-animation {
+        transition: transform 0.3s ease-in-out;
+    }
+</style>
+
 <!-- Mobile Sidebar Overlay -->
 <div x-show="sidebarOpen" 
      x-transition:enter="transition-opacity ease-linear duration-300"
@@ -7,26 +106,26 @@
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
      @click="sidebarOpen = false"
-     class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden">
+     class="sidebar-overlay fixed inset-0 z-40 lg:hidden">
 </div>
 
 <!-- Sidebar -->
 <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-       class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+       class="sidebar-container sidebar-animation fixed inset-y-0 left-0 z-50 w-64 transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col">
     
     <!-- Logo/Brand -->
-    <div class="flex items-center justify-between px-4 bg-gray-800" style="height: 70px;">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="sidebar-header px-4 flex items-center justify-between" style="height: 70px;">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <svg class="w-6 h-6 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
             </div>
-            <span class="text-white font-bold text-lg">BlackCobra</span>
+            <span class="logo-text">BlackCobra</span>
         </div>
         <!-- Close button for mobile -->
         <button @click="sidebarOpen = false" 
-                class="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                class="close-btn lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -34,7 +133,7 @@
     </div>
     
     <!-- Navigation -->
-    <nav class="mt-4 px-2 space-y-1">
+    <nav class="nav-container flex-1">
         {% if user.is_authenticated %}
             {% if user.profile.role == 'admin' %}
                 <!-- Admin Navigation -->
@@ -48,4 +147,9 @@
             {% endif %}
         {% endif %}
     </nav>
+
+    <!-- Sidebar Footer (optional) -->
+    <div class="px-4 py-4 border-t border-gray-700">
+        <p class="text-xs text-gray-500 text-center">BlackCobra Karate Club</p>
+    </div>
 </aside>

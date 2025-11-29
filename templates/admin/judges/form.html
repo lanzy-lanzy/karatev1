@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{% if judge %}Edit Judge{% else %}Add Judge{% endif %} - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}{% if judge %}Edit Judge{% else %}Add Judge{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">
+                {% if judge %}Edit Judge{% else %}Register New Judge{% endif %}
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if judge %}Update judge information and certification details{% else %}Create a new judge account{% endif %}
+            </p>
+        </div>
+        
+        <form method="post" 
+              {% if judge %}action="{% url 'admin_judge_edit' judge.id %}"{% else %}action="{% url 'admin_judge_add' %}"{% endif %}
+              hx-post="{% if judge %}{% url 'admin_judge_edit' judge.id %}{% else %}{% url 'admin_judge_add' %}{% endif %}"
+              hx-swap="innerHTML"
+              hx-target="body"
+              class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- Personal Information Section -->
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-base font-medium text-gray-900 mb-4">Personal Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- First Name -->
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                        <input type="text" name="first_name" id="first_name" required
+                               value="{{ form.first_name.value|default:'' }}"
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.first_name.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        {% if form.first_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                        <input type="text" name="last_name" id="last_name" required
+                               value="{{ form.last_name.value|default:'' }}"
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.last_name.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        {% if form.last_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                        <input type="email" name="email" id="email" required
+                               value="{{ form.email.value|default:'' }}"
+                               {% if judge %}disabled{% endif %}
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.email.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if judge %}bg-gray-50 cursor-not-allowed{% endif %}">
+                        {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                        {% if judge %}
+                        <p class="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="tel" name="phone" id="phone"
+                               value="{{ form.phone.value|default:'' }}"
+                               class="w-full px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Account Information Section (Only for creation) -->
+            {% if not judge %}
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-base font-medium text-gray-900 mb-4">Account Information</h3>
+                
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                    <input type="text" name="username" id="username" required
+                           value="{{ form.username.value|default:'' }}"
+                           class="w-full px-4 py-3 min-h-[44px] border {% if form.username.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                           placeholder="e.g., judge_sarah">
+                    {% if form.username.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Used for system login</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                        <input type="password" name="password" id="password" required
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.password.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                               placeholder="Enter a strong password">
+                        {% if form.password.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
+                    </div>
+                    
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+                        <input type="password" name="confirm_password" id="confirm_password" required
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.confirm_password.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                               placeholder="Re-enter password">
+                        {% if form.confirm_password.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.confirm_password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Certification Information Section -->
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-base font-medium text-gray-900 mb-4">Certification Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Certification Level -->
+                    <div>
+                        <label for="certification_level" class="block text-sm font-medium text-gray-700 mb-1">Certification Level *</label>
+                        <select name="certification_level" id="certification_level" required
+                                class="w-full px-4 py-3 min-h-[44px] border {% if form.certification_level.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <option value="">Select certification level</option>
+                            {% for value, label in certification_levels %}
+                            <option value="{{ value }}" {% if form.certification_level.value == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.certification_level.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.certification_level.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Certification Date -->
+                    <div>
+                        <label for="certification_date" class="block text-sm font-medium text-gray-700 mb-1">Certification Date *</label>
+                        <input type="date" name="certification_date" id="certification_date" required
+                               value="{{ form.certification_date.value|default:'' }}"
+                               class="w-full px-4 py-3 min-h-[44px] border {% if form.certification_date.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        {% if form.certification_date.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.certification_date.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Section (Only for editing) -->
+            {% if judge %}
+            <div>
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_active" id="is_active"
+                           {% if form.is_active.value %}checked{% endif %}
+                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="is_active" class="ml-3 block text-sm font-medium text-gray-700">
+                        Judge is active
+                    </label>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                    Inactive judges cannot be assigned to matches
+                </p>
+            </div>
+            {% endif %}
+            
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <a href="{% url 'admin_judges' %}" 
+                   class="px-4 py-3 min-h-[44px] text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="px-4 py-3 min-h-[44px] text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center justify-center">
+                    {% if judge %}Update Judge{% else %}Create Judge{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
