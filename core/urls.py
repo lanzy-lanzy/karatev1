@@ -42,6 +42,7 @@ urlpatterns = [
     path('admin/trainees/<int:trainee_id>/edit/', admin_views.trainee_edit, name='admin_trainee_edit'),
     path('admin/trainees/<int:trainee_id>/delete/', admin_views.trainee_delete, name='admin_trainee_delete'),
     path('admin/trainees/<int:trainee_id>/restore/', admin_views.trainee_restore, name='admin_trainee_restore'),
+    path('admin/trainees/export/', admin_views.trainee_export, name='admin_trainee_export'),
     
     # Event Management URLs (Requirements: 4.1-4.5)
     path('admin/events/', admin_views.event_list, name='admin_events'),
@@ -54,6 +55,7 @@ urlpatterns = [
     path('admin/events/<int:event_id>/archive/', admin_views.event_archive, name='admin_event_archive'),
     path('admin/events/<int:event_id>/restore/', admin_views.event_restore, name='admin_event_restore'),
     path('admin/events/<int:event_id>/status/', admin_views.event_status_update, name='admin_event_status_update'),
+    path('admin/events/export/', admin_views.event_export, name='admin_event_export'),
     
     # Matchmaking Management URLs (Requirements: 5.1-5.6)
     path('admin/matchmaking/', admin_views.matchmaking_list, name='admin_matchmaking'),
@@ -98,6 +100,9 @@ urlpatterns = [
     path('admin/evaluations/<int:evaluation_id>/delete/', admin_views.evaluation_delete, name='admin_evaluation_delete'),
     path('admin/evaluations/<int:trainee_id>/trainee/', admin_views.trainee_evaluations, name='admin_trainee_evaluations'),
     
+    # Admin Leaderboard URLs
+    path('admin/leaderboard/', admin_views.leaderboard_view, name='admin_leaderboard'),
+    
     # Trainee URLs (Requirements: 8.1-8.3, 9.1-9.4, 10.1-10.3, 11.1-11.3)
     path('trainee/dashboard/', trainee_views.dashboard_view, name='trainee_dashboard'),
     path('trainee/profile/', trainee_views.profile_view, name='trainee_profile'),
@@ -114,6 +119,7 @@ urlpatterns = [
     path('judge/matches/', judge_views.matches_view, name='judge_matches'),
     path('judge/results/', judge_views.results_view, name='judge_results'),
     path('judge/results/<int:match_id>/', judge_views.result_entry, name='judge_result_entry'),
+    path('judge/profile/edit/', judge_views.profile_edit, name='judge_profile_edit'),
     
     # Leaderboard and Belt Rank URLs
     path('leaderboard/all-time/', leaderboard_views.leaderboard_all_time, name='leaderboard_all_time'),

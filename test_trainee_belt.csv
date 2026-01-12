@@ -1,0 +1,76 @@
+BlackCobra Karate Club - Trainee Management Report (By Belt Rank)
+"Generated: January 11, 2026"
+Status Filter: All | Belt Filter: All
+
+Summary
+Metric,Count
+Total Trainees,44
+Active,44
+Inactive,1
+Suspended,0
+
+White Belt (14 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+Jane White1,test02@example.com,Lightweight,21,Active,11/29/2025
+John Karate,john@blackcobra.com,Middleweight,N/A,Active,11/26/2025
+John White1,test01@example.com,Lightweight,20,Active,11/29/2025
+Lester Quiapo,lesterquiapo@gmail.com,Flyweight,9,Active,01/11/2026
+Marie Uy,marieuy@gmail.com,Flyweight,17,Active,01/11/2026
+Mike White2,test03@example.com,Middleweight,25,Active,11/29/2025
+Paul Tu,paultugade@gmail.com,Lightweight,20,Active,01/09/2026
+Sarah White2,test04@example.com,Middleweight,26,Active,11/29/2025
+johan rick,johanrick@gmail.com,Flyweight,17,Active,01/09/2026
+marthu ci,marthurci@gmail.com,Flyweight,23,Active,01/11/2026
+rico Lumocas,ricolumocas@gmail.com,Lightweight,18,Active,01/08/2026
+tata boang,tataboang@gmail.com,Lightweight,15,Active,01/09/2026
+vibar padilla,vp@gmail.com,Lightweight,18,Active,01/08/2026
+you tillme,lanzy55@gmail.com,Lightweight,33,Active,11/26/2025
+
+Yellow Belt (6 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+Chris Yellow2,test07@example.com,Welterweight,24,Active,11/29/2025
+Emma Tiger,emma@blackcobra.com,Welterweight,N/A,Active,11/26/2025
+Emma Yellow1,test06@example.com,Welterweight,23,Active,11/29/2025
+Jamesil Maputi,jamesilmaputi65@gmail.com,Lightweight,33,Active,11/27/2025
+Lisa Yellow2,test08@example.com,Welterweight,25,Active,11/29/2025
+Sarah Warrior,sarah@blackcobra.com,Welterweight,N/A,Active,11/26/2025
+
+Orange Belt (5 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+David Orange1,test09@example.com,Middleweight,26,Active,11/29/2025
+Johndyl nazareno,john@gmail.com,Lightweight,19,Active,11/27/2025
+Mark Orange2,test11@example.com,Middleweight,28,Active,11/29/2025
+Mike Champion,mike@blackcobra.com,Light Heavyweight,N/A,Active,11/26/2025
+Rachel Orange1,test10@example.com,Middleweight,27,Active,11/29/2025
+
+Green Belt (8 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+Anna Dragon,anna@blackcobra.com,Lightweight,N/A,Active,11/26/2025
+Ariel Tugade,ariel06@gmail.com,Welterweight,25,Active,11/27/2025
+Chard Lumocas,rl@gmail.com,Lightweight,19,Active,12/03/2025
+James Green2,test15@example.com,Light Heavyweight,32,Active,11/29/2025
+Kevin Green1,test13@example.com,Light Heavyweight,30,Active,11/29/2025
+Maria Green2,test16@example.com,Light Heavyweight,33,Active,11/29/2025
+Robert Phoenix,robert@blackcobra.com,Light Heavyweight,N/A,Active,11/26/2025
+Sophie Green1,test14@example.com,Light Heavyweight,31,Active,11/29/2025
+
+Blue Belt (4 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+Diana Blue1,test18@example.com,Heavyweight,36,Active,11/29/2025
+Robert Blue1,test17@example.com,Heavyweight,35,Active,11/29/2025
+Steven Blue2,test19@example.com,Heavyweight,37,Active,11/29/2025
+Victoria Blue2,test20@example.com,Heavyweight,38,Active,11/29/2025
+
+Brown Belt (4 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+Alex Thunder,alex@blackcobra.com,Middleweight,-1,Inactive,11/26/2025
+Alex Yellow1,test05@example.com,Welterweight,22,Active,11/29/2025
+Anna Orange2,test12@example.com,Light Heavyweight,29,Active,11/29/2025
+David Master,david@blackcobra.com,Light Heavyweight,N/A,Active,11/26/2025
+
+Black Belt (3 trainees)
+Name,Email,Weight Class,Age,Status,Joined
+James Swift,james@blackcobra.com,Middleweight,N/A,Active,11/26/2025
+John Trainee,trainee@blackcobra.com,Middleweight,25,Active,11/26/2025
+Lisa Ninja,lisa@blackcobra.com,Lightweight,N/A,Active,11/26/2025
+

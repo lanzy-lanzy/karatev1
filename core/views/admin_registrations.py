@@ -44,6 +44,7 @@ def registration_list(request):
         'approved_count': Registration.objects.filter(status='approved').count(),
         'rejected_count': Registration.objects.filter(status='rejected').count(),
         'paid_count': Registration.objects.filter(payment_status='paid').count(),
+        'total_trainees': Trainee.objects.count(),
     }
     
     return render(request, 'admin/registrations/list.html', context)
@@ -67,10 +68,22 @@ def registration_detail(request, registration_id):
             # Create payment record if it doesn't exist
             try:
                 # Ensure UserProfile exists
-                profile, _ = UserProfile.objects.get_or_create(
+                profile, created = UserProfile.objects.get_or_create(
                     user=registration.user,
-                    defaults={'role': 'trainee'}
+                    defaults={
+                        'role': 'trainee',
+                        'phone': registration.phone,
+                        'date_of_birth': registration.date_of_birth,
+                        'address': registration.address
+                    }
                 )
+                
+                # Update profile fields if already exists
+                if not created:
+                    profile.phone = registration.phone
+                    profile.date_of_birth = registration.date_of_birth
+                    profile.address = registration.address
+                    profile.save()
                 
                 # Ensure Trainee exists
                 trainee, _ = Trainee.objects.get_or_create(
@@ -78,8 +91,8 @@ def registration_detail(request, registration_id):
                     defaults={
                         'belt_rank': registration.belt_level,
                         'weight': 0,
-                        'emergency_contact': registration.first_name,
-                        'emergency_phone': registration.phone,
+                        'emergency_contact': registration.emergency_contact,
+                        'emergency_phone': registration.emergency_phone,
                         'status': 'active'
                     }
                 )
@@ -108,6 +121,11 @@ def registration_detail(request, registration_id):
             return redirect('admin_registration_detail', registration_id=registration.id)
         
         elif action == 'approve':
+            # Check if payment is unpaid - cannot approve without payment
+            if registration.payment_status == 'unpaid' and not request.POST.get('mark_payment'):
+                messages.error(request, f'Cannot approve registration. Payment must be marked as paid first.')
+                return redirect('admin_registration_detail', registration_id=registration.id)
+            
             # Mark payment as paid if checkbox is checked
             if request.POST.get('mark_payment'):
                 registration.payment_status = 'paid'
@@ -124,8 +142,20 @@ def registration_detail(request, registration_id):
                 # Create or get UserProfile
                 profile, created = UserProfile.objects.get_or_create(
                     user=registration.user,
-                    defaults={'role': 'trainee'}
+                    defaults={
+                        'role': 'trainee',
+                        'phone': registration.phone,
+                        'date_of_birth': registration.date_of_birth,
+                        'address': registration.address
+                    }
                 )
+                
+                # Update profile fields if already exists
+                if not created:
+                    profile.phone = registration.phone
+                    profile.date_of_birth = registration.date_of_birth
+                    profile.address = registration.address
+                    profile.save()
                 
                 # Create or get Trainee record
                 trainee, trainee_created = Trainee.objects.get_or_create(
@@ -133,8 +163,8 @@ def registration_detail(request, registration_id):
                     defaults={
                         'belt_rank': registration.belt_level,
                         'weight': 0,
-                        'emergency_contact': registration.first_name,
-                        'emergency_phone': registration.phone,
+                        'emergency_contact': registration.emergency_contact,
+                        'emergency_phone': registration.emergency_phone,
                         'status': 'active'
                     }
                 )
@@ -201,6 +231,11 @@ def registration_approve(request, registration_id):
     registration = get_object_or_404(Registration, id=registration_id)
     
     if request.method == 'POST':
+        # Check if payment is unpaid - cannot approve without payment
+        if registration.payment_status == 'unpaid':
+            messages.error(request, f'Cannot approve registration. Payment must be marked as paid first.')
+            return redirect('admin_registration_detail', registration_id=registration.id)
+        
         registration.status = 'approved'
         registration.reviewed_by = request.user
         registration.reviewed_at = timezone.now()

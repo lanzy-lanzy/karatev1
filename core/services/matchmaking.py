@@ -20,6 +20,7 @@ class ProposedMatch:
     belt_diff: int
     age_diff: int
     score: float  # Lower is better
+    is_title_match: bool = False  # Whether this is a title/championship match
 
 
 # Belt rank order for adjacency calculation
@@ -54,53 +55,102 @@ class MatchmakingService:
     MAX_AGE_DIFF = 3  # years
     MIN_JUDGES_REQUIRED = 3  # Minimum judges per match
     
-    def auto_match(self, event_id: int) -> List[ProposedMatch]:
+    def auto_match(
+        self, 
+        event_id: int, 
+        allow_ongoing_matches: bool = True, 
+        include_title_matches: bool = True,
+        use_global_pool: bool = False
+    ) -> List[ProposedMatch]:
         """
-        Generate automatic match pairings for an event.
+        Generate automatic match pairings for an event or globally.
         
         Rules (Requirements 5.3):
         - Weight class: within 5kg
         - Belt rank: same or adjacent
         - Age group: within 3 years
         
+        Args:
+            event_id: The event to generate matches for
+            allow_ongoing_matches: If True, trainees with ongoing matches can be auto-matched (for title matches)
+            include_title_matches: If True, includes title/championship match suggestions
+            use_global_pool: If True, match from all active trainees in system (not just event participants)
+        
         Returns list of proposed matches for admin review.
         """
         event = Event.objects.get(id=event_id)
         
-        # Get registered trainees for this event
-        registrations = EventRegistration.objects.filter(
+        # Get trainees - either globally or from event registration
+        if use_global_pool:
+            # Use all active trainees in the system
+            from core.models import Trainee
+            all_trainees = list(Trainee.objects.filter(
+                status='active',
+                archived=False,
+                profile__user__is_active=True
+            ).select_related('profile__user'))
+        else:
+            # Get registered trainees for this event only
+            registrations = EventRegistration.objects.filter(
+                event=event,
+                status='registered'
+            ).select_related('trainee__profile')
+            all_trainees = [reg.trainee for reg in registrations]
+        
+        # Get trainees with completed matches (candidates for title matches)
+        completed_matches = Match.objects.filter(
             event=event,
-            status='registered'
-        ).select_related('trainee__profile')
+            status='completed'
+        )
+        completed_trainee_ids = set()
+        for match in completed_matches:
+            completed_trainee_ids.add(match.competitor1_id)
+            completed_trainee_ids.add(match.competitor2_id)
         
-        trainees = [reg.trainee for reg in registrations]
-        
-        # Get trainees who already have matches in this event
-        existing_matches = Match.objects.filter(event=event).exclude(status='cancelled')
-        matched_trainee_ids = set()
-        for match in existing_matches:
-            matched_trainee_ids.add(match.competitor1_id)
-            matched_trainee_ids.add(match.competitor2_id)
-        
-        # Filter out already matched trainees
-        available_trainees = [t for t in trainees if t.id not in matched_trainee_ids]
+        # Separate trainees into two groups
+        if allow_ongoing_matches:
+            # All trainees can be matched (for regular matches)
+            regular_match_candidates = all_trainees
+            
+            # Only trainees with completed matches are candidates for title matches
+            title_match_candidates = [t for t in all_trainees if t.id in completed_trainee_ids]
+        else:
+            # Get trainees with ongoing/scheduled matches
+            ongoing_matches = Match.objects.filter(event=event).exclude(status__in=['cancelled', 'completed'])
+            ongoing_trainee_ids = set()
+            for match in ongoing_matches:
+                ongoing_trainee_ids.add(match.competitor1_id)
+                ongoing_trainee_ids.add(match.competitor2_id)
+            
+            # Only trainees without ongoing matches can be auto-matched
+            regular_match_candidates = [t for t in all_trainees if t.id not in ongoing_trainee_ids]
+            title_match_candidates = []
         
         # Generate all valid pairings
         proposed_matches = []
         used_trainees = set()
         
-        # Score all possible pairings
+        # Score all possible regular pairings
         all_pairings = []
-        for i, t1 in enumerate(available_trainees):
-            for t2 in available_trainees[i+1:]:
+        for i, t1 in enumerate(regular_match_candidates):
+            for t2 in regular_match_candidates[i+1:]:
                 if self._is_valid_pairing(t1, t2):
                     score = self._calculate_pairing_score(t1, t2)
-                    all_pairings.append((t1, t2, score))
+                    all_pairings.append((t1, t2, score, False))  # False = not a title match
+        
+        # Add title match pairings if enabled
+        if include_title_matches and title_match_candidates:
+            for i, t1 in enumerate(title_match_candidates):
+                for t2 in title_match_candidates[i+1:]:
+                    if t1.id != t2.id and self._is_valid_pairing(t1, t2):
+                        # Title matches get a bonus score (slightly better priority)
+                        score = self._calculate_pairing_score(t1, t2) * 0.9  # 10% bonus
+                        all_pairings.append((t1, t2, score, True))  # True = is a title match
         
         # Sort by score (lower is better) and greedily select matches
         all_pairings.sort(key=lambda x: x[2])
         
-        for t1, t2, score in all_pairings:
+        for t1, t2, score, is_title_match in all_pairings:
             if t1.id not in used_trainees and t2.id not in used_trainees:
                 weight_diff = abs(t1.weight - t2.weight)
                 belt_diff = abs(get_belt_index(t1.belt_rank) - get_belt_index(t2.belt_rank))
@@ -112,7 +162,8 @@ class MatchmakingService:
                     weight_diff=weight_diff,
                     belt_diff=belt_diff,
                     age_diff=age_diff,
-                    score=score
+                    score=score,
+                    is_title_match=is_title_match
                 ))
                 
                 used_trainees.add(t1.id)
@@ -161,17 +212,33 @@ class MatchmakingService:
         competitor1_id: int,
         competitor2_id: int,
         judge_ids: List[int],
-        scheduled_time: datetime
+        scheduled_time: datetime,
+        is_title_match: bool = False,
+        match_notes: str = ""
     ) -> Match:
         """
         Create a manual match assignment.
         Requirements: 5.2
+        
+        Args:
+            event_id: The event for the match
+            competitor1_id: First competitor ID
+            competitor2_id: Second competitor ID
+            judge_ids: List of judge IDs to assign
+            scheduled_time: When the match is scheduled
+            is_title_match: Whether this is a title/championship match
+            match_notes: Optional notes for the match
         """
+        notes = "Title Match / Championship" if is_title_match else ""
+        if match_notes:
+            notes = f"{notes}\n{match_notes}".strip()
+        
         match = Match.objects.create(
             event_id=event_id,
             competitor1_id=competitor1_id,
             competitor2_id=competitor2_id,
-            scheduled_time=scheduled_time
+            scheduled_time=scheduled_time,
+            notes=notes
         )
         
         for judge_id in judge_ids:

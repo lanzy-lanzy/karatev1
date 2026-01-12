@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+
+{% block title %}Export Events - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Export Events Report{% endblock %}
+
+{% block content %}
+<style>
+    .export-container {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        margin: -1.5rem;
+    }
+
+    .export-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ff6b35;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #e5e7eb;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 107, 53, 0.5);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+
+    .form-select option {
+        background: #1f2937;
+        color: white;
+    }
+
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #ff6b35;
+    }
+
+    .checkbox-item label {
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.875rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+    }
+
+    .btn-secondary {
+        background: rgba(156, 163, 175, 0.15);
+        color: #d1d5db;
+        border: 1px solid rgba(156, 163, 175, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(156, 163, 175, 0.25);
+    }
+
+    .preview-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .preview-table {
+        width: 100%;
+        font-size: 0.85rem;
+        color: #d1d5db;
+    }
+
+    .preview-table th {
+        color: #ff6b35;
+        font-weight: 600;
+        padding: 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .preview-table td {
+        padding: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-box {
+        background: rgba(255, 107, 53, 0.1);
+        border: 1px solid rgba(255, 107, 53, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #ff6b35;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
+    }
+
+    .divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 2rem 0;
+    }
+
+    @media (max-width: 640px) {
+        .export-container {
+            padding: 1rem;
+        }
+
+        .export-card {
+            padding: 1.5rem;
+        }
+
+        .checkbox-group {
+            grid-template-columns: 1fr;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="export-container">
+    <div class="export-card">
+        <!-- Header -->
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 800; margin: 0 0 0.5rem 0; color: #ff6b35; display: flex; align-items: center; gap: 0.75rem;">
+                <span>📊</span> Comprehensive Event Report
+            </h1>
+            <p style="color: #9ca3af; margin: 0;">Export events with dynamic filters and customization</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">{{ total_events }}</div>
+                <div class="stat-label">Total Events</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ open_events }}</div>
+                <div class="stat-label">Open Events</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ completed_events }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ total_participants }}</div>
+                <div class="stat-label">Total Registered</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Export Form -->
+        <form method="post" id="export-form">
+            {% csrf_token %}
+
+            <!-- Status Filter -->
+            <div class="form-group">
+                <label class="section-title">
+                    <span>🎯</span> Filter by Status
+                </label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="draft" id="status-draft" checked>
+                        <label for="status-draft">Draft</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="open" id="status-open" checked>
+                        <label for="status-open">Open for Registration</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="closed" id="status-closed" checked>
+                        <label for="status-closed">Registration Closed</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="ongoing" id="status-ongoing" checked>
+                        <label for="status-ongoing">Ongoing</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="completed" id="status-completed" checked>
+                        <label for="status-completed">Completed</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="status" value="cancelled" id="status-cancelled" checked>
+                        <label for="status-cancelled">Cancelled</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="form-group">
+                <label class="section-title">
+                    <span>📅</span> Date Range
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="date_from" class="form-input" value="{{ date_from }}">
+                    </div>
+                    <div>
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="date_to" class="form-input" value="{{ date_to }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columns to Include -->
+            <div class="form-group">
+                <label class="section-title">
+                    <span>📋</span> Columns to Include
+                </label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="name" id="col-name" checked>
+                        <label for="col-name">Event Name</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="date" id="col-date" checked>
+                        <label for="col-date">Event Date</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="location" id="col-location" checked>
+                        <label for="col-location">Location</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="status" id="col-status" checked>
+                        <label for="col-status">Status</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="participants" id="col-participants" checked>
+                        <label for="col-participants">Participants</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="max_participants" id="col-max" checked>
+                        <label for="col-max">Max Capacity</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="deadline" id="col-deadline">
+                        <label for="col-deadline">Registration Deadline</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="columns" value="description" id="col-description">
+                        <label for="col-description">Description</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Details -->
+            <div class="form-group">
+                <label class="section-title">
+                    <span>📎</span> Additional Details
+                </label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="include_participants" id="inc-participants">
+                        <label for="inc-participants">Include Participants List</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="include_matches" id="inc-matches">
+                        <label for="inc-matches">Include Matches Info</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="include_statistics" id="inc-stats" checked>
+                        <label for="inc-stats">Include Summary Statistics</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sort Options -->
+            <div class="form-group">
+                <label class="form-label" style="margin-bottom: 1rem;">
+                    <span class="section-title" style="margin-bottom: 0;">
+                        <span>🔄</span> Sort By
+                    </span>
+                </label>
+                <select name="sort_by" class="form-select">
+                    <option value="date_desc">Event Date (Newest First)</option>
+                    <option value="date_asc">Event Date (Oldest First)</option>
+                    <option value="name">Event Name (A-Z)</option>
+                    <option value="participants">Participants (High to Low)</option>
+                    <option value="status">Status</option>
+                </select>
+            </div>
+
+            <!-- Export Format -->
+            <div class="form-group">
+                <label class="form-label" style="margin-bottom: 1rem;">
+                    <span class="section-title" style="margin-bottom: 0;">
+                        <span>📄</span> Export Format
+                    </span>
+                </label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="radio" name="format" value="pdf" id="format-pdf" checked>
+                        <label for="format-pdf">PDF Report</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="format" value="csv" id="format-csv">
+                        <label for="format-csv">CSV File</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="format" value="excel" id="format-excel">
+                        <label for="format-excel">Excel File</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="form-group">
+                <label class="section-title">
+                    <span>👁️</span> Preview
+                </label>
+                <div class="preview-box">
+                    <table class="preview-table" id="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Date</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Participants</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>{{ event.name }}</td>
+                                <td>{{ event.event_date|date:"Y-m-d" }}</td>
+                                <td>{{ event.location }}</td>
+                                <td>{{ event.get_status_display }}</td>
+                                <td>{{ event.participant_count }}/{{ event.max_participants }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #6b7280; padding: 1rem;">No events to display</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" name="action" value="export" class="btn btn-primary">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    Export Report
+                </button>
+                <a href="{% url 'admin_events' %}" class="btn btn-secondary">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Update preview when filters change
+    document.querySelectorAll('input[type="checkbox"], select, input[type="date"], input[type="radio"]').forEach(el => {
+        el.addEventListener('change', () => {
+            // This could be enhanced with AJAX to show real-time preview
+            console.log('Filter changed');
+        });
+    });
+</script>
+{% endblock %}

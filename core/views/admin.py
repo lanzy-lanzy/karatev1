@@ -12,7 +12,7 @@ from django.contrib import messages
 from datetime import timedelta
 
 from core.decorators import admin_required
-from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match, BeltRankProgress, Registration
+from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match, MatchResult, BeltRankProgress, Registration
 
 
 @admin_required
@@ -36,8 +36,7 @@ def dashboard_view(request):
     # Metric 4: Upcoming matches count
     upcoming_matches = Match.objects.filter(status='scheduled', scheduled_time__gte=now).count()
     
-    # Recent activity feed (placeholder data structure)
-    # Will be populated with real data when related models exist
+    # Recent activity feed
     recent_activity = get_recent_activity()
     
     context = {
@@ -69,10 +68,10 @@ def get_recent_activity(limit=10):
     # Get recent trainee registrations
     activities.extend(get_recent_registrations(limit))
     
-    # Get recent payments (when Payment model exists)
+    # Get recent payments
     activities.extend(get_recent_payments(limit))
     
-    # Get recent match results (when Match model exists)
+    # Get recent match results
     activities.extend(get_recent_match_results(limit))
     
     # Sort by date (most recent first)
@@ -123,31 +122,22 @@ def get_recent_payments(limit=10):
     """
     Get recent payments for the activity feed.
     Requirements: 2.2
-    
-    Note: This function will be fully implemented when the Payment model is created.
-    Currently returns an empty list as a placeholder.
     """
     activities = []
     
-    # Check if Payment model exists and query it
-    try:
-        from core.models import Payment
-        recent_payments = Payment.objects.select_related(
-            'trainee__profile__user'
-        ).order_by('-payment_date')[:limit]
-        
-        for payment in recent_payments:
-            name = payment.trainee.profile.user.get_full_name() or payment.trainee.profile.user.username
-            activities.append({
-                'type': 'payment',
-                'icon': 'currency-dollar',
-                'message': f"Payment received from {name}: ${payment.amount}",
-                'date': payment.payment_date,
-                'color': 'blue',
-            })
-    except (ImportError, Exception):
-        # Payment model doesn't exist yet
-        pass
+    recent_payments = Payment.objects.select_related(
+        'trainee__profile__user'
+    ).order_by('-payment_date')[:limit]
+    
+    for payment in recent_payments:
+        name = payment.trainee.profile.user.get_full_name() or payment.trainee.profile.user.username
+        activities.append({
+            'type': 'payment',
+            'icon': 'currency-dollar',
+            'message': f"Payment received from {name}: ${payment.amount}",
+            'date': payment.payment_date,
+            'color': 'blue',
+        })
     
     return activities
 
@@ -156,33 +146,24 @@ def get_recent_match_results(limit=10):
     """
     Get recent match results for the activity feed.
     Requirements: 2.2
-    
-    Note: This function will be fully implemented when the Match/MatchResult models are created.
-    Currently returns an empty list as a placeholder.
     """
     activities = []
     
-    # Check if MatchResult model exists and query it
-    try:
-        from core.models import MatchResult
-        recent_results = MatchResult.objects.select_related(
-            'match__competitor1__profile__user',
-            'match__competitor2__profile__user',
-            'winner__profile__user'
-        ).order_by('-submitted_at')[:limit]
-        
-        for result in recent_results:
-            winner_name = result.winner.profile.user.get_full_name() or result.winner.profile.user.username
-            activities.append({
-                'type': 'match_result',
-                'icon': 'trophy',
-                'message': f"Match completed: {winner_name} won",
-                'date': result.submitted_at,
-                'color': 'purple',
-            })
-    except (ImportError, Exception):
-        # MatchResult model doesn't exist yet
-        pass
+    recent_results = MatchResult.objects.select_related(
+        'match__competitor1__profile__user',
+        'match__competitor2__profile__user',
+        'winner__profile__user'
+    ).order_by('-submitted_at')[:limit]
+    
+    for result in recent_results:
+        winner_name = result.winner.profile.user.get_full_name() or result.winner.profile.user.username
+        activities.append({
+            'type': 'match_result',
+            'icon': 'trophy',
+            'message': f"Match completed: {winner_name} won",
+            'date': result.submitted_at,
+            'color': 'purple',
+        })
     
     return activities
 
@@ -774,7 +755,7 @@ def event_add(request):
             return render(request, 'admin/events/form.html', {'form': form_data})
         
         # Create event
-        Event.objects.create(
+        event = Event.objects.create(
             name=name,
             event_date=event_date,
             location=location,
@@ -784,7 +765,20 @@ def event_add(request):
             status=status
         )
         
-        messages.success(request, f'Event "{name}" has been created successfully.')
+        # Check if event should be auto-closed on creation
+        if status == 'open':
+            closure_reason = event.close_registration()
+            if closure_reason:
+                if closure_reason == 'registration_deadline_passed':
+                    messages.warning(request, f'Event "{name}" has been created but registration is already closed (deadline has passed).')
+                elif closure_reason == 'max_participants_reached':
+                    messages.warning(request, f'Event "{name}" has been created but registration is already closed (max participants reached).')
+                else:
+                    messages.success(request, f'Event "{name}" has been created successfully.')
+            else:
+                messages.success(request, f'Event "{name}" has been created successfully.')
+        else:
+            messages.success(request, f'Event "{name}" has been created successfully.')
         
         if request.headers.get('HX-Request'):
             response = HttpResponse()
@@ -856,7 +850,20 @@ def event_edit(request, event_id):
         event.status = status
         event.save()
         
-        messages.success(request, f'Event "{name}" has been updated successfully.')
+        # Check if event should be auto-closed
+        if status == 'open':
+            closure_reason = event.close_registration()
+            if closure_reason:
+                if closure_reason == 'registration_deadline_passed':
+                    messages.warning(request, f'Event "{name}" has been updated and registration has been automatically closed due to deadline.')
+                elif closure_reason == 'max_participants_reached':
+                    messages.warning(request, f'Event "{name}" has been updated and registration has been automatically closed - maximum participants reached.')
+                else:
+                    messages.success(request, f'Event "{name}" has been updated successfully.')
+            else:
+                messages.success(request, f'Event "{name}" has been updated successfully.')
+        else:
+            messages.success(request, f'Event "{name}" has been updated successfully.')
         
         if request.headers.get('HX-Request'):
             response = HttpResponse()
@@ -1070,7 +1077,7 @@ def matchmaking_list(request):
         matches = event.matches.filter(archived=False)
         if status_filter:
             matches = matches.filter(status=status_filter)
-        matches = matches.order_by('scheduled_time')
+        matches = matches.order_by('-created_at')
         
         if matches.exists() or not event_filter:
             events_with_matches.append({
@@ -1121,7 +1128,7 @@ def matchmaking_list_partial(request):
         matches = event.matches.filter(archived=False)
         if status_filter:
             matches = matches.filter(status=status_filter)
-        matches = matches.order_by('scheduled_time')
+        matches = matches.order_by('-created_at')
         
         if matches.exists() or not event_filter:
             events_with_matches.append({
@@ -1451,7 +1458,7 @@ def archived_matchmaking_list(request):
         matches = event.matches.filter(archived=True)
         if status_filter:
             matches = matches.filter(status=status_filter)
-        matches = matches.order_by('scheduled_time')
+        matches = matches.order_by('-created_at')
         
         if matches.exists() or not event_filter:
             events_with_matches.append({
@@ -1501,7 +1508,7 @@ def archived_matchmaking_list_partial(request):
         matches = event.matches.filter(archived=True)
         if status_filter:
             matches = matches.filter(status=status_filter)
-        matches = matches.order_by('scheduled_time')
+        matches = matches.order_by('-created_at')
         
         if matches.exists() or not event_filter:
             events_with_matches.append({
@@ -1565,6 +1572,7 @@ def match_restore(request, match_id):
 def auto_matchmaking(request):
     """
     Auto-matchmaking view - select event and generate proposed matches.
+    Supports regular matches and title matches.
     Requirements: 5.3, 5.4
     """
     from core.models import Event, Judge
@@ -1580,10 +1588,19 @@ def auto_matchmaking(request):
     
     if request.method == 'POST':
         event_id = request.POST.get('event', '').strip()
+        allow_ongoing = request.POST.get('allow_ongoing_matches', 'on') == 'on'
+        include_titles = request.POST.get('include_title_matches', 'on') == 'on'
+        use_global = request.POST.get('use_global_pool', 'off') == 'on'
+        
         if event_id:
             selected_event = Event.objects.get(id=event_id)
             service = MatchmakingService()
-            proposed_matches = service.auto_match(int(event_id))
+            proposed_matches = service.auto_match(
+                int(event_id),
+                allow_ongoing_matches=allow_ongoing,
+                include_title_matches=include_titles,
+                use_global_pool=use_global
+            )
             
             # Store proposed matches in session for confirmation
             request.session['proposed_matches'] = [
@@ -1593,10 +1610,16 @@ def auto_matchmaking(request):
                     'weight_diff': str(pm.weight_diff),
                     'belt_diff': pm.belt_diff,
                     'age_diff': pm.age_diff,
+                    'is_title_match': pm.is_title_match,
                 }
                 for pm in proposed_matches
             ]
             request.session['auto_match_event_id'] = event_id
+            request.session['auto_match_options'] = {
+                'allow_ongoing_matches': allow_ongoing,
+                'include_title_matches': include_titles,
+                'use_global_pool': use_global,
+            }
     
     context = {
         'events': events,
@@ -1612,6 +1635,7 @@ def auto_matchmaking(request):
 def auto_matchmaking_confirm(request):
     """
     Confirm and create matches from auto-matchmaking proposals.
+    Supports both regular matches and title matches.
     Requirements: 5.4
     """
     from core.models import Match, Event, MatchJudge
@@ -1638,6 +1662,7 @@ def auto_matchmaking_confirm(request):
             base_time = datetime.combine(event.event_date, datetime.min.time().replace(hour=9))
             
             created_count = 0
+            title_match_count = 0
             for idx in selected_indices:
                 try:
                     idx = int(idx)
@@ -1646,11 +1671,15 @@ def auto_matchmaking_confirm(request):
                         # Schedule matches 30 minutes apart
                         scheduled_time = base_time + timedelta(minutes=30 * created_count)
                         
+                        is_title_match = pm.get('is_title_match', False)
+                        notes = "Title Match / Championship" if is_title_match else ""
+                        
                         match = Match.objects.create(
                             event_id=event_id,
                             competitor1_id=pm['competitor1_id'],
                             competitor2_id=pm['competitor2_id'],
-                            scheduled_time=scheduled_time
+                            scheduled_time=scheduled_time,
+                            notes=notes
                         )
                         
                         # Assign judges to the match
@@ -1658,6 +1687,8 @@ def auto_matchmaking_confirm(request):
                             MatchJudge.objects.create(match=match, judge_id=judge_id)
                         
                         created_count += 1
+                        if is_title_match:
+                            title_match_count += 1
                 except (ValueError, IndexError):
                     continue
             
@@ -1666,8 +1697,14 @@ def auto_matchmaking_confirm(request):
                 del request.session['proposed_matches']
             if 'auto_match_event_id' in request.session:
                 del request.session['auto_match_event_id']
+            if 'auto_match_options' in request.session:
+                del request.session['auto_match_options']
             
-            messages.success(request, f'{created_count} matches have been created successfully with {len(valid_judge_ids)} judges assigned.')
+            match_type_msg = ""
+            if title_match_count > 0:
+                match_type_msg = f" ({title_match_count} title matches)"
+            
+            messages.success(request, f'{created_count} matches{match_type_msg} have been created successfully with {len(valid_judge_ids)} judges assigned.')
         
         return redirect('admin_matchmaking')
     
@@ -2209,6 +2246,58 @@ def reports_export(request):
     return HttpResponse('Invalid export format', status=400)
 
 
+@admin_required
+def trainee_export(request):
+    """
+    Export trainee list as PDF or CSV with optional filters and organization format.
+    Supports filtering by specific trainee IDs or using regular filters.
+    Requirements: 3.1, 3.6
+    """
+    from core.services.reports import ReportService
+    
+    report_service = ReportService()
+    
+    file_format = request.GET.get('format', 'pdf').strip()  # file format: pdf or csv
+    export_org = request.GET.get('export_by', 'user').strip()  # organization: user or belt
+    status_filter = request.GET.get('status_filter', '').strip() or None
+    belt_filter = request.GET.get('belt_filter', '').strip() or None
+    trainee_ids_str = request.GET.get('trainee_ids', '').strip()  # NEW: comma-separated trainee IDs
+    
+    # Parse trainee_ids if provided
+    trainee_ids = None
+    if trainee_ids_str:
+        try:
+            trainee_ids = [int(id.strip()) for id in trainee_ids_str.split(',') if id.strip().isdigit()]
+        except (ValueError, AttributeError):
+            trainee_ids = None
+    
+    # Validate export_by parameter
+    if export_org not in ['user', 'belt']:
+        export_org = 'user'
+    
+    # Generate trainee report with specified organization
+    report_data = report_service.trainee_report(
+        status_filter=status_filter, 
+        belt_filter=belt_filter,
+        trainee_ids=trainee_ids,
+        export_format=f'by_{export_org}'
+    )
+    
+    # Export based on file format
+    if file_format == 'pdf':
+        pdf_content = report_service.export_pdf(report_data, 'trainee_list')
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="trainees_{export_org}.pdf"'
+        return response
+    elif file_format == 'csv':
+        csv_content = report_service.export_csv(report_data, 'trainee_list')
+        response = HttpResponse(csv_content, content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="trainees_{export_org}.csv"'
+        return response
+    
+    return HttpResponse('Invalid export format', status=400)
+
+
 # Belt Rank Promotion Views
 
 @admin_required
@@ -2217,7 +2306,7 @@ def belt_rank_promotion_list(request):
     List all trainees with belt rank promotion management interface.
     Allows admin to view current belt ranks and promote trainees.
     """
-    trainees = Trainee.objects.select_related('profile__user', 'points').all()
+    trainees = Trainee.objects.select_related('profile__user', 'points').prefetch_related('belt_rank_progress').all()
     
     # Apply search filter
     search = request.GET.get('search', '').strip()
@@ -2265,7 +2354,7 @@ def belt_rank_promotion_list_partial(request):
     """
     Partial view for HTMX belt promotion list updates.
     """
-    trainees = Trainee.objects.select_related('profile__user', 'points').all()
+    trainees = Trainee.objects.select_related('profile__user', 'points').prefetch_related('belt_rank_progress').all()
     
     # Apply search filter
     search = request.GET.get('search', '').strip()
@@ -2290,7 +2379,18 @@ def belt_rank_promotion_list_partial(request):
     # Order by name
     trainees = trainees.order_by('profile__user__first_name', 'profile__user__last_name')
     
-    return render(request, 'admin/belt_promotion/list_partial.html', {'trainees': trainees})
+    # Get belt choices for filter dropdown
+    belt_choices = Trainee.BELT_CHOICES
+    
+    context = {
+        'trainees': trainees,
+        'belt_choices': belt_choices,
+        'search_query': search,
+        'belt_filter': belt_filter,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'admin/belt_promotion/list_partial.html', context)
 
 
 @admin_required
@@ -2513,18 +2613,24 @@ def evaluation_add(request):
     
     if request.method == 'POST':
         trainee_id = request.POST.get('trainee', '').strip()
-        technique = request.POST.get('technique', '3').strip()
-        speed = request.POST.get('speed', '3').strip()
-        strength = request.POST.get('strength', '3').strip()
-        flexibility = request.POST.get('flexibility', '3').strip()
-        discipline = request.POST.get('discipline', '3').strip()
-        spirit = request.POST.get('spirit', '3').strip()
-        overall_rating = request.POST.get('overall_rating', '3').strip()
+        technique = request.POST.get('technique', '1').strip()
+        speed = request.POST.get('speed', '1').strip()
+        strength = request.POST.get('strength', '1').strip()
+        flexibility = request.POST.get('flexibility', '1').strip()
+        discipline = request.POST.get('discipline', '1').strip()
+        spirit = request.POST.get('spirit', '1').strip()
+        overall_rating = request.POST.get('overall_rating', '1').strip()
         comments = request.POST.get('comments', '').strip()
         strengths = request.POST.get('strengths', '').strip()
         areas_for_improvement = request.POST.get('areas_for_improvement', '').strip()
         recommendations = request.POST.get('recommendations', '').strip()
         next_evaluation_date = request.POST.get('next_evaluation_date', '').strip()
+        
+        # Belt Scoring fields
+        attendance_score = request.POST.get('attendance_score', '0').strip()
+        sparring_score = request.POST.get('sparring_score', '0').strip()
+        achievement_score = request.POST.get('achievement_score', '0').strip()
+        performance_score = request.POST.get('performance_score', '0').strip()
         
         # Validation
         errors = {}
@@ -2537,6 +2643,17 @@ def evaluation_add(request):
                 'trainee': {'value': trainee_id, 'errors': [errors.get('trainee')] if errors.get('trainee') else []},
             }
             return render(request, 'admin/evaluations/form.html', {'form': form_data, 'trainees': trainees, 'rating_choices': TraineeEvaluation.RATING_CHOICES})
+        
+        # Calculate total belt points: attendance (10%) + sparring (20%) + achievement (10%) + performance (10%)
+        try:
+            att_score = int(attendance_score)
+            spar_score = int(sparring_score)
+            ach_score = int(achievement_score)
+            perf_score = int(performance_score)
+            
+            total_belt_points = round((att_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
+        except (ValueError, TypeError):
+            total_belt_points = 0
         
         # Create evaluation
         evaluation = TraineeEvaluation.objects.create(
@@ -2554,10 +2671,16 @@ def evaluation_add(request):
             areas_for_improvement=areas_for_improvement,
             recommendations=recommendations,
             next_evaluation_date=next_evaluation_date if next_evaluation_date else None,
+            # Belt Scoring fields
+            attendance_score=int(attendance_score),
+            sparring_score=int(sparring_score),
+            achievement_score=int(achievement_score),
+            performance_score=int(performance_score),
+            total_belt_points=total_belt_points,
             status='completed'
         )
         
-        messages.success(request, 'Evaluation has been created successfully.')
+        messages.success(request, f'Evaluation has been created successfully. +{total_belt_points} belt points awarded to {evaluation.trainee.profile.user.get_full_name}.')
         
         if request.headers.get('HX-Request'):
             response = HttpResponse()
@@ -2585,43 +2708,68 @@ def evaluation_edit(request, evaluation_id):
     evaluation = get_object_or_404(TraineeEvaluation.objects.select_related('trainee__profile__user'), id=evaluation_id)
     
     if request.method == 'POST':
-        technique = request.POST.get('technique', str(evaluation.technique)).strip()
-        speed = request.POST.get('speed', str(evaluation.speed)).strip()
-        strength = request.POST.get('strength', str(evaluation.strength)).strip()
-        flexibility = request.POST.get('flexibility', str(evaluation.flexibility)).strip()
-        discipline = request.POST.get('discipline', str(evaluation.discipline)).strip()
-        spirit = request.POST.get('spirit', str(evaluation.spirit)).strip()
-        overall_rating = request.POST.get('overall_rating', str(evaluation.overall_rating)).strip()
-        comments = request.POST.get('comments', evaluation.comments).strip()
-        strengths = request.POST.get('strengths', evaluation.strengths).strip()
-        areas_for_improvement = request.POST.get('areas_for_improvement', evaluation.areas_for_improvement).strip()
-        recommendations = request.POST.get('recommendations', evaluation.recommendations).strip()
-        next_evaluation_date = request.POST.get('next_evaluation_date', '').strip()
-        
-        # Update evaluation
-        evaluation.technique = int(technique)
-        evaluation.speed = int(speed)
-        evaluation.strength = int(strength)
-        evaluation.flexibility = int(flexibility)
-        evaluation.discipline = int(discipline)
-        evaluation.spirit = int(spirit)
-        evaluation.overall_rating = int(overall_rating)
-        evaluation.comments = comments
-        evaluation.strengths = strengths
-        evaluation.areas_for_improvement = areas_for_improvement
-        evaluation.recommendations = recommendations
-        if next_evaluation_date:
-            evaluation.next_evaluation_date = next_evaluation_date
-        evaluation.save()
-        
-        messages.success(request, 'Evaluation has been updated successfully.')
-        
-        if request.headers.get('HX-Request'):
-            response = HttpResponse()
-            response['HX-Redirect'] = '/admin/evaluations/'
-            return response
-        
-        return redirect('admin_evaluations')
+         technique = request.POST.get('technique', str(evaluation.technique)).strip()
+         speed = request.POST.get('speed', str(evaluation.speed)).strip()
+         strength = request.POST.get('strength', str(evaluation.strength)).strip()
+         flexibility = request.POST.get('flexibility', str(evaluation.flexibility)).strip()
+         discipline = request.POST.get('discipline', str(evaluation.discipline)).strip()
+         spirit = request.POST.get('spirit', str(evaluation.spirit)).strip()
+         overall_rating = request.POST.get('overall_rating', str(evaluation.overall_rating)).strip()
+         comments = request.POST.get('comments', evaluation.comments).strip()
+         strengths = request.POST.get('strengths', evaluation.strengths).strip()
+         areas_for_improvement = request.POST.get('areas_for_improvement', evaluation.areas_for_improvement).strip()
+         recommendations = request.POST.get('recommendations', evaluation.recommendations).strip()
+         next_evaluation_date = request.POST.get('next_evaluation_date', '').strip()
+         
+         # Belt Scoring fields
+         attendance_score = request.POST.get('attendance_score', str(evaluation.attendance_score)).strip()
+         sparring_score = request.POST.get('sparring_score', str(evaluation.sparring_score)).strip()
+         achievement_score = request.POST.get('achievement_score', str(evaluation.achievement_score)).strip()
+         performance_score = request.POST.get('performance_score', str(evaluation.performance_score)).strip()
+         
+         # Calculate total belt points
+         try:
+             att_score = int(attendance_score)
+             spar_score = int(sparring_score)
+             ach_score = int(achievement_score)
+             perf_score = int(performance_score)
+             
+             total_belt_points = round((att_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
+         except (ValueError, TypeError):
+             total_belt_points = evaluation.total_belt_points
+         
+         # Update evaluation
+         evaluation.technique = int(technique)
+         evaluation.speed = int(speed)
+         evaluation.strength = int(strength)
+         evaluation.flexibility = int(flexibility)
+         evaluation.discipline = int(discipline)
+         evaluation.spirit = int(spirit)
+         evaluation.overall_rating = int(overall_rating)
+         evaluation.comments = comments
+         evaluation.strengths = strengths
+         evaluation.areas_for_improvement = areas_for_improvement
+         evaluation.recommendations = recommendations
+         if next_evaluation_date:
+             evaluation.next_evaluation_date = next_evaluation_date
+         
+         # Update belt scoring fields
+         evaluation.attendance_score = int(attendance_score)
+         evaluation.sparring_score = int(sparring_score)
+         evaluation.achievement_score = int(achievement_score)
+         evaluation.performance_score = int(performance_score)
+         evaluation.total_belt_points = total_belt_points
+         
+         evaluation.save()
+         
+         messages.success(request, f'Evaluation has been updated successfully. Current belt points: +{total_belt_points}.')
+         
+         if request.headers.get('HX-Request'):
+             response = HttpResponse()
+             response['HX-Redirect'] = '/admin/evaluations/'
+             return response
+         
+         return redirect('admin_evaluations')
     
     # GET request - show form
     return render(request, 'admin/evaluations/form.html', {
@@ -2673,3 +2821,515 @@ def trainee_evaluations(request, trainee_id):
     }
     
     return render(request, 'admin/evaluations/trainee_detail.html', context)
+
+
+# ============================================================================
+# LEADERBOARD VIEWS
+# ============================================================================
+
+@admin_required
+def leaderboard_view(request):
+    """
+    Display leaderboard rankings with different timeframe options.
+    """
+    from core.models import Leaderboard, TraineePoints, Match
+    from django.db.models import Count, Q
+    
+    # Get timeframe filter from request
+    timeframe = request.GET.get('timeframe', 'all_time').strip()
+    valid_timeframes = ['all_time', 'yearly', 'monthly']
+    
+    if timeframe not in valid_timeframes:
+        timeframe = 'all_time'
+    
+    # Get leaderboard data
+    leaderboards = Leaderboard.objects.filter(
+        timeframe=timeframe
+    ).select_related(
+        'trainee__profile__user',
+        'trainee__points'
+    ).order_by('rank')[:100]
+    
+    # Enrich leaderboard data with match counts
+    for entry in leaderboards:
+        # Get total matches count for this trainee
+        total_matches = Match.objects.filter(
+            Q(competitor1=entry.trainee) | Q(competitor2=entry.trainee)
+        ).count()
+        entry.match_count = total_matches
+    
+    context = {
+        'leaderboards': leaderboards,
+        'timeframe': timeframe,
+        'valid_timeframes': valid_timeframes,
+    }
+    
+    return render(request, 'admin/leaderboard/list.html', context)
+
+
+# Event PDF Export
+
+@admin_required
+def event_export(request):
+    """
+    Comprehensive event export page with dynamic filtering options.
+    """
+    events = Event.objects.filter(archived=False).order_by('-event_date')
+    
+    context = {
+        'events': events,
+        'total_events': events.count(),
+        'open_events': events.filter(status='open').count(),
+        'completed_events': events.filter(status='completed').count(),
+        'total_participants': sum(e.participant_count for e in events),
+        'date_from': '',
+        'date_to': '',
+    }
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        format_type = request.POST.get('format', 'pdf')
+        
+        # Get filter parameters
+        statuses = request.POST.getlist('status')
+        date_from = request.POST.get('date_from')
+        date_to = request.POST.get('date_to')
+        columns = request.POST.getlist('columns')
+        include_participants = request.POST.get('include_participants') == 'on'
+        include_matches = request.POST.get('include_matches') == 'on'
+        include_statistics = request.POST.get('include_statistics') == 'on'
+        sort_by = request.POST.get('sort_by', 'date_desc')
+        
+        # Filter events
+        filtered_events = events.filter(status__in=statuses) if statuses else events
+        
+        if date_from:
+            from datetime import datetime
+            filtered_events = filtered_events.filter(event_date__gte=date_from)
+        
+        if date_to:
+            from datetime import datetime
+            filtered_events = filtered_events.filter(event_date__lte=date_to)
+        
+        # Sort events
+        if sort_by == 'date_asc':
+            filtered_events = filtered_events.order_by('event_date')
+        elif sort_by == 'name':
+            filtered_events = filtered_events.order_by('name')
+        elif sort_by == 'participants':
+            filtered_events = filtered_events.annotate(
+                participant_count=Count('registrations', filter=Q(registrations__status='registered'))
+            ).order_by('-participant_count')
+        elif sort_by == 'status':
+            filtered_events = filtered_events.order_by('status')
+        else:  # date_desc
+            filtered_events = filtered_events.order_by('-event_date')
+        
+        # Export based on format
+        if format_type == 'pdf':
+            return export_events_pdf(
+                filtered_events, columns, include_participants,
+                include_matches, include_statistics, request
+            )
+        elif format_type == 'csv':
+            return export_events_csv(
+                filtered_events, columns, include_participants,
+                include_matches, include_statistics, request
+            )
+        elif format_type == 'excel':
+            return export_events_excel(
+                filtered_events, columns, include_participants,
+                include_matches, include_statistics, request
+            )
+    
+    return render(request, 'admin/events/export.html', context)
+
+
+def export_events_pdf(events, columns, include_participants, include_matches, include_statistics, request=None):
+    """
+    Generate comprehensive PDF report.
+    """
+    from reportlab.lib.pagesizes import A4, letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from datetime import datetime
+    import os
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Events_Report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+    
+    doc = SimpleDocTemplate(response, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Title styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=22,
+        textColor=colors.HexColor('#ff6b35'),
+        spaceAfter=6,
+        alignment=TA_CENTER,
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.grey,
+        spaceAfter=12,
+        alignment=TA_CENTER,
+    )
+    
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#ff6b35'),
+        spaceAfter=8,
+        spaceBefore=8,
+    )
+    
+    meta_style = ParagraphStyle(
+        'MetaStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.HexColor('#6b7280'),
+        spaceAfter=2,
+        alignment=TA_LEFT,
+    )
+    
+    # Header with logo and metadata
+    header_data = []
+    
+    # Try to add logo if it exists
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'media', 'logo.png')
+    if os.path.exists(logo_path):
+        try:
+            logo = Image(logo_path, width=0.5*inch, height=0.5*inch)
+            header_table_data = [[logo, Paragraph("<b>BlackCobra Karate Club</b><br/>Event Management Report", 
+                                                   ParagraphStyle('HeaderText', parent=styles['Normal'], 
+                                                                fontSize=14, textColor=colors.HexColor('#ff6b35'), 
+                                                                fontName='Helvetica-Bold'))]]
+            header_table = Table(header_table_data, colWidths=[0.8*inch, 5*inch])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            story.append(header_table)
+        except:
+            # If logo fails to load, just use text
+            story.append(Paragraph("<b>BlackCobra Karate Club</b>", title_style))
+            story.append(Paragraph("Event Management Report", styles['Heading3']))
+    else:
+        # No logo file, use text header
+        story.append(Paragraph("<b>BlackCobra Karate Club</b>", title_style))
+        story.append(Paragraph("Event Management Report", styles['Heading3']))
+    
+    story.append(Spacer(1, 0.1 * inch))
+    
+    # Metadata section - use table for proper layout
+    current_user = request.user.get_full_name() or request.user.username if request else 'System'
+    
+    metadata_data = [
+        ['Generated on:', datetime.now().strftime('%B %d, %Y at %H:%M:%S')],
+        ['Total Events:', str(events.count())],
+    ]
+    
+    metadata_table = Table(metadata_data, colWidths=[2*inch, 3.8*inch])
+    metadata_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('PADDING', (0, 0), (-1, -1), 3),
+        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor('#ff6b35')),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, colors.HexColor('#ff6b35')),
+    ]))
+    
+    story.append(metadata_table)
+    story.append(Spacer(1, 0.15 * inch))
+    
+    # Statistics section
+    if include_statistics:
+        story.append(Paragraph("Summary Statistics", section_style))
+        
+        stats_data = [
+            ['Total Events', str(events.count())],
+            ['Open Events', str(events.filter(status='open').count())],
+            ['Completed Events', str(events.filter(status='completed').count())],
+            ['Cancelled Events', str(events.filter(status='cancelled').count())],
+        ]
+        
+        stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
+        stats_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0f0f0')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('PADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+        ]))
+        
+        story.append(stats_table)
+        story.append(Spacer(1, 0.2 * inch))
+    
+    # Events table
+    story.append(Paragraph("Event Details", section_style))
+    
+    # Build column headers based on selection
+    headers = []
+    col_width_map = {}
+    
+    if 'name' in columns:
+        headers.append('Event Name')
+        col_width_map['name'] = 1.2*inch
+    if 'date' in columns:
+        headers.append('Date')
+        col_width_map['date'] = 0.9*inch
+    if 'location' in columns:
+        headers.append('Location')
+        col_width_map['location'] = 1.0*inch
+    if 'status' in columns:
+        headers.append('Status')
+        col_width_map['status'] = 1.1*inch
+    if 'participants' in columns:
+        headers.append('Participants')
+        col_width_map['participants'] = 0.85*inch
+    if 'max_participants' in columns:
+        headers.append('Max')
+        col_width_map['max'] = 0.65*inch
+    if 'deadline' in columns:
+        headers.append('Deadline')
+        col_width_map['deadline'] = 0.9*inch
+    if 'description' in columns:
+        headers.append('Description')
+        col_width_map['description'] = 1.0*inch
+    
+    # Create column widths list
+    col_widths = []
+    if 'name' in columns:
+        col_widths.append(col_width_map['name'])
+    if 'date' in columns:
+        col_widths.append(col_width_map['date'])
+    if 'location' in columns:
+        col_widths.append(col_width_map['location'])
+    if 'status' in columns:
+        col_widths.append(col_width_map['status'])
+    if 'participants' in columns:
+        col_widths.append(col_width_map['participants'])
+    if 'max_participants' in columns:
+        col_widths.append(col_width_map['max'])
+    if 'deadline' in columns:
+        col_widths.append(col_width_map['deadline'])
+    if 'description' in columns:
+        col_widths.append(col_width_map['description'])
+    
+    # Cell style for text wrapping
+    cell_style = ParagraphStyle(
+        'CellStyle',
+        parent=styles['Normal'],
+        fontSize=6,
+        fontName='Helvetica',
+        alignment=TA_CENTER,
+        wordWrap='CJK',
+        splitLongWords=True,
+    )
+    
+    # Build header row with wrapped text
+    header_row = []
+    for header in headers:
+        header_row.append(Paragraph(f'<b>{header}</b>', cell_style))
+    
+    events_data = [header_row]
+    
+    for event in events:
+        row = []
+        if 'name' in columns:
+            text = event.name[:30]
+            row.append(Paragraph(text, cell_style))
+        if 'date' in columns:
+            text = event.event_date.strftime('%Y-%m-%d')
+            row.append(Paragraph(text, cell_style))
+        if 'location' in columns:
+            text = event.location[:20]
+            row.append(Paragraph(text, cell_style))
+        if 'status' in columns:
+            text = event.get_status_display()
+            row.append(Paragraph(text, cell_style))
+        if 'participants' in columns:
+            text = str(event.participant_count)
+            row.append(Paragraph(text, cell_style))
+        if 'max_participants' in columns:
+            text = str(event.max_participants)
+            row.append(Paragraph(text, cell_style))
+        if 'deadline' in columns:
+            text = event.registration_deadline.strftime('%Y-%m-%d') if event.registration_deadline else 'N/A'
+            row.append(Paragraph(text, cell_style))
+        if 'description' in columns:
+            text = (event.description or '')[:25]
+            row.append(Paragraph(text, cell_style))
+        
+        events_data.append(row)
+    
+    # Create table with optimized column widths
+    events_table = Table(events_data, colWidths=col_widths)
+    events_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ff6b35')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 7),
+        ('FONTSIZE', (0, 1), (-1, -1), 6),
+        ('PADDING', (0, 0), (-1, 0), 4),
+        ('PADDING', (0, 1), (-1, -1), 3),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+    ]))
+    
+    story.append(events_table)
+    
+    # Participants list
+    if include_participants:
+        story.append(PageBreak())
+        story.append(Paragraph("Event Participants", section_style))
+        
+        for event in events[:5]:  # Limit to first 5 events per page
+            registrations = event.registrations.filter(status='registered')
+            if registrations.exists():
+                story.append(Paragraph(f"<b>{event.name}</b>", styles['Normal']))
+                
+                participant_data = [['Participant Name', 'Belt Rank', 'Weight Class']]
+                for reg in registrations:
+                    trainee = reg.trainee
+                    participant_data.append([
+                        trainee.profile.user.get_full_name(),
+                        trainee.get_belt_rank_display(),
+                        trainee.weight_class,
+                    ])
+                
+                participant_table = Table(participant_data, colWidths=[2.5*inch, 1.5*inch, 1.8*inch])
+                participant_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ff6b35')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('FONTSIZE', (0, 0), (-1, -1), 7),
+                    ('PADDING', (0, 0), (-1, -1), 4),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ]))
+                
+                story.append(participant_table)
+                story.append(Spacer(1, 0.1 * inch))
+    
+    # Signature section at the end
+    story.append(PageBreak())
+    story.append(Spacer(1, 0.5 * inch))
+    
+    signature_style = ParagraphStyle(
+        'SignatureStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        fontName='Helvetica',
+        alignment=TA_LEFT,
+    )
+    
+    # Signature table layout
+    sig_data = [
+        ['', ''],
+        ['_' * 35, '_' * 35],
+        ['Name: ' + current_user, 'Date: ' + datetime.now().strftime('%B %d, %Y')],
+        ['', ''],
+        ['Prepared by:', ''],
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[2.9*inch, 2.9*inch])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    
+    story.append(sig_table)
+    
+    # Build PDF
+    doc.build(story)
+    return response
+
+
+def export_events_csv(events, columns, include_participants, include_matches, include_statistics, request=None):
+    """
+    Generate CSV export.
+    """
+    import csv
+    from datetime import datetime
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="Events_Report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Add metadata header
+    current_user = request.user.get_full_name() or request.user.username if request else 'System'
+    writer.writerow(['BlackCobra Karate Club - Event Report'])
+    writer.writerow([f'Generated on: {datetime.now().strftime("%B %d, %Y at %H:%M:%S")}'])
+    writer.writerow([f'Prepared by: {current_user}'])
+    writer.writerow([])  # Empty row for spacing
+    
+    # Headers
+    headers = []
+    if 'name' in columns:
+        headers.append('Event Name')
+    if 'date' in columns:
+        headers.append('Date')
+    if 'location' in columns:
+        headers.append('Location')
+    if 'status' in columns:
+        headers.append('Status')
+    if 'participants' in columns:
+        headers.append('Participants')
+    if 'max_participants' in columns:
+        headers.append('Max Capacity')
+    if 'deadline' in columns:
+        headers.append('Registration Deadline')
+    if 'description' in columns:
+        headers.append('Description')
+    
+    writer.writerow(headers)
+    
+    # Data rows
+    for event in events:
+        row = []
+        if 'name' in columns:
+            row.append(event.name)
+        if 'date' in columns:
+            row.append(event.event_date.strftime('%Y-%m-%d'))
+        if 'location' in columns:
+            row.append(event.location)
+        if 'status' in columns:
+            row.append(event.get_status_display())
+        if 'participants' in columns:
+            row.append(event.participant_count)
+        if 'max_participants' in columns:
+            row.append(event.max_participants)
+        if 'deadline' in columns:
+            row.append(event.registration_deadline.strftime('%Y-%m-%d'))
+        if 'description' in columns:
+            row.append(event.description or '')
+        
+        writer.writerow(row)
+    
+    return response
+
+
+def export_events_excel(events, columns, include_participants, include_matches, include_statistics, request=None):
+    """
+    Generate Excel export (using CSV for now, can be extended with openpyxl).
+    """
+    # For now, return CSV. Can be upgraded with openpyxl for true Excel format
+    return export_events_csv(events, columns, include_participants, include_matches, include_statistics, request)

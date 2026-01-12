@@ -6,19 +6,60 @@
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Header with Add Button -->
+    <!-- Header with Add Button and Export -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-4xl font-bold gradient-text">All Trainees</h2>
             <p class="text-sm text-gray-400 mt-2">Manage club members and their information</p>
         </div>
-        <a href="{% url 'admin_trainee_add' %}" 
-           class="inline-flex items-center justify-center px-8 py-3 text-sm font-semibold text-white btn-primary rounded-lg">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Add New Trainee
-        </a>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Export Options -->
+            <div class="flex flex-col sm:flex-row gap-2">
+                <!-- Export By Selector -->
+                <select id="exportBy" name="export_by"
+                    class="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors">
+                    <option value="user">Export by User</option>
+                    <option value="belt">Export by Belt Rank</option>
+                </select>
+                
+                <!-- Export Format Dropdown -->
+                <div class="relative group">
+                    <button class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Export
+                    </button>
+                    <div class="absolute right-0 mt-0 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                        <a href="javascript:void(0)" onclick="exportTrainee('pdf')"
+                            class="block px-4 py-3 text-sm text-white hover:bg-gray-700 rounded-t-lg flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"></path>
+                            </svg>
+                            Export as PDF
+                        </a>
+                        <a href="javascript:void(0)" onclick="exportTrainee('csv')"
+                            class="block px-4 py-3 text-sm text-white hover:bg-gray-700 rounded-b-lg flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            Export as CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add New Trainee Button -->
+            <a href="{% url 'admin_trainee_add' %}"
+                class="inline-flex items-center justify-center px-8 py-3 text-sm font-semibold text-white btn-primary rounded-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+                    </path>
+                </svg>
+                Add New Trainee
+            </a>
+        </div>
     </div>
 
     <!-- Search and Filter Bar -->
@@ -27,63 +68,56 @@
             <!-- Search Input -->
             <div class="flex-1">
                 <div class="relative">
-                    <input type="text" 
-                           name="search"
-                           id="trainee-search"
-                           placeholder="Search by name, belt rank, or status..."
-                           class="w-full pl-12 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
-                           hx-get="{% url 'admin_trainee_list_partial' %}"
-                           hx-trigger="keyup changed delay:300ms, search"
-                           hx-target="#trainee-list"
-                           hx-swap="innerHTML"
-                           hx-include="[name='status_filter'], [name='belt_filter']">
+                    <input type="text" name="search" id="trainee-search"
+                        placeholder="Search by name, belt rank, or status..."
+                        class="w-full pl-12 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
+                        hx-get="{% url 'admin_trainee_list_partial' %}" hx-trigger="keyup changed delay:300ms, search"
+                        hx-target="#trainee-list" hx-swap="innerHTML"
+                        hx-include="[name='status_filter'], [name='belt_filter']">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                     <div class="htmx-indicator absolute inset-y-0 right-0 pr-4 flex items-center">
-                        <svg class="animate-spin h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg class="animate-spin h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
                         </svg>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Status Filter -->
             <div class="sm:w-40">
                 <select name="status_filter"
-                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
-                        hx-get="{% url 'admin_trainee_list_partial' %}"
-                        hx-trigger="change"
-                        hx-target="#trainee-list"
-                        hx-swap="innerHTML"
-                        hx-include="[name='search'], [name='belt_filter']">
+                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
+                    hx-get="{% url 'admin_trainee_list_partial' %}" hx-trigger="change" hx-target="#trainee-list"
+                    hx-swap="innerHTML" hx-include="[name='search'], [name='belt_filter']">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
                 </select>
             </div>
-            
+
             <!-- Belt Filter -->
             <div class="sm:w-40">
                 <select name="belt_filter"
-                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
-                        hx-get="{% url 'admin_trainee_list_partial' %}"
-                        hx-trigger="change"
-                        hx-target="#trainee-list"
-                        hx-swap="innerHTML"
-                        hx-include="[name='search'], [name='status_filter']">
+                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-colors"
+                    hx-get="{% url 'admin_trainee_list_partial' %}" hx-trigger="change" hx-target="#trainee-list"
+                    hx-swap="innerHTML" hx-include="[name='search'], [name='status_filter']">
                     <option value="">All Belts</option>
                     <option value="white">White</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="orange">Orange</option>
                     <option value="green">Green</option>
-                    <option value="blue">Blue</option>
                     <option value="brown">Brown</option>
                     <option value="black">Black</option>
+                    <option value="master_degree">Master Degree</option>
                 </select>
             </div>
         </div>
@@ -94,4 +128,57 @@
         {% include "admin/trainees/list_partial.html" %}
     </div>
 </div>
+
+<script>
+    function exportTrainee(fileFormat) {
+        // Get selected trainee IDs
+        const checkboxes = document.querySelectorAll('.trainee-checkbox:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        
+        // Get current filter values
+        const statusFilter = document.querySelector('[name="status_filter"]')?.value || '';
+        const beltFilter = document.querySelector('[name="belt_filter"]')?.value || '';
+        const exportBy = document.querySelector('#exportBy')?.value || 'user';
+        
+        // Build URL parameters
+        let params = `format=${fileFormat}&export_by=${exportBy}`;
+        
+        if (selectedIds.length > 0) {
+            params += `&trainee_ids=${selectedIds.join(',')}`;
+        }
+        if (statusFilter) params += `&status_filter=${statusFilter}`;
+        if (beltFilter) params += `&belt_filter=${beltFilter}`;
+        
+        // Navigate to export URL
+        window.location.href = `{% url 'admin_trainee_export' %}?${params}`;
+    }
+    
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('.trainee-checkbox:checked');
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        selectedCount.textContent = checkboxes.length;
+        bulkActions.style.display = checkboxes.length > 0 ? 'flex' : 'none';
+    }
+    
+    function toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const traineeCheckboxes = document.querySelectorAll('.trainee-checkbox');
+        traineeCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        updateSelectedCount();
+    }
+    
+    function selectAll() {
+        document.getElementById('selectAllCheckbox').checked = true;
+        toggleSelectAll();
+    }
+    
+    function deselectAll() {
+        document.getElementById('selectAllCheckbox').checked = false;
+        toggleSelectAll();
+    }
+</script>
 {% endblock %}

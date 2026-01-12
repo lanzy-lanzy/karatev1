@@ -72,6 +72,26 @@
     .nav-container {
         margin-top: 1.5rem;
         padding: 0 0.75rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1;
+    }
+
+    .nav-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .nav-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .nav-container::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.3);
+        border-radius: 3px;
+    }
+
+    .nav-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(75, 85, 99, 0.5);
     }
 
     .nav-section {

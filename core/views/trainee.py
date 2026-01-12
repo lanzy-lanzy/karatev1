@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from core.decorators import trainee_required
 from core.models import (
-    Trainee, Event, EventRegistration, Match, Payment, TraineePoints, BeltRankThreshold, Leaderboard
+    Trainee, Event, EventRegistration, Match, Payment, TraineePoints, BeltRankThreshold, Leaderboard, TraineeEvaluation
 )
 from core.services.leaderboard_service import PointsService, LeaderboardService
 from core.forms import TraineeProfileForm, TraineeDetailForm
@@ -58,6 +58,12 @@ def dashboard_view(request):
         status='pending'
     ).count()
     
+    # Get recent evaluations (for belt rank progress)
+    recent_evaluations = TraineeEvaluation.objects.filter(
+        trainee=trainee,
+        status='completed'
+    ).order_by('-evaluated_at')[:5]
+    
     # Get trainee points and belt rank stats
     trainee_points = PointsService.get_trainee_points(trainee)
     next_belt_threshold = PointsService.get_next_belt_threshold(trainee)
@@ -86,7 +92,9 @@ def dashboard_view(request):
         'progress_percentage': progress_percentage,
         'win_rate': win_rate,
         'points_needed': points_needed,
+        'points_needed': points_needed,
         'trainee_rank': trainee_rank,
+        'recent_evaluations': recent_evaluations,
     }
     
     return render(request, 'trainee/dashboard.html', context)

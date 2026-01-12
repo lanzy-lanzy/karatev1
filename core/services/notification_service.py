@@ -186,6 +186,48 @@ class NotificationService:
         return len(notifications)
     
     @staticmethod
+    def create_event_closed_notification(event, reason):
+        """
+        Create notifications for all trainees when an event registration closes.
+        
+        Args:
+            event: Event instance
+            reason: Reason for closure ('registration_deadline_passed' or 'max_participants_reached')
+        """
+        # Get all trainee users
+        trainee_users = User.objects.filter(
+            profile__role='trainee',
+            profile__trainee__status='active'
+        )
+        
+        if reason == 'registration_deadline_passed':
+            title = f"Event Registration Closed: {event.name}"
+            message = f"Registration for '{event.name}' has closed.\n\nReason: Registration deadline ({event.registration_deadline}) has passed.\n\nEvent Date: {event.event_date}"
+        elif reason == 'max_participants_reached':
+            title = f"Event Registration Closed: {event.name}"
+            message = f"Registration for '{event.name}' has closed.\n\nReason: Maximum participants ({event.max_participants}) reached.\n\nEvent Date: {event.event_date}"
+        else:
+            title = f"Event Registration Closed: {event.name}"
+            message = f"Registration for '{event.name}' has closed.\n\nEvent Date: {event.event_date}"
+        
+        notifications = []
+        for user in trainee_users:
+            notif = Notification(
+                notification_type='event_updated',
+                title=title,
+                message=message,
+                recipient=user,
+                event=event
+            )
+            notifications.append(notif)
+        
+        # Bulk create notifications
+        if notifications:
+            Notification.objects.bulk_create(notifications)
+        
+        return len(notifications)
+    
+    @staticmethod
     def get_unread_notifications(user):
         """Get all unread notifications for a user."""
         return Notification.objects.filter(recipient=user, is_read=False).order_by('-created_at')

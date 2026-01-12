@@ -239,7 +239,7 @@ def judge_edit(request, judge_id):
         # User information
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
+        email = judge.profile.user.email  # Email is disabled in form, use existing email
         phone = request.POST.get('phone', '').strip()
         
         # Judge information
@@ -254,10 +254,6 @@ def judge_edit(request, judge_id):
             errors['first_name'] = 'First name is required'
         if not last_name:
             errors['last_name'] = 'Last name is required'
-        if not email:
-            errors['email'] = 'Email is required'
-        elif User.objects.filter(email=email).exclude(id=judge.profile.user.id).exists():
-            errors['email'] = 'Email already exists'
         if not certification_level:
             errors['certification_level'] = 'Certification level is required'
         if not certification_date:

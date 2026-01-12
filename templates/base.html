@@ -319,6 +319,39 @@
     </template>
 
     <script>
+        // Mark all notifications as read
+        async function markAllAsRead() {
+            try {
+                const response = await fetch('{% url "mark_all_notifications_read" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Find and remove the badge
+                    const badge = document.querySelector('span.bg-red-600');
+                    if (badge) {
+                        badge.parentElement.removeChild(badge);
+                    }
+                    
+                    // Remove the "New" badges and blue background from notification items
+                    document.querySelectorAll('[id^="notif-item-"]').forEach(item => {
+                        item.classList.remove('bg-blue-50');
+                        const newBadge = item.querySelector('.bg-blue-100');
+                        if (newBadge) {
+                            newBadge.parentElement.removeChild(newBadge);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error marking notifications as read:', error);
+            }
+        }
+
         // HTMX event handlers for toast notifications
         document.body.addEventListener('htmx:afterRequest', function(evt) {
             if (evt.detail.successful) {

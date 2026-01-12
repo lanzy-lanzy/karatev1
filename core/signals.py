@@ -3,7 +3,7 @@ Django signals for automatic notification creation.
 """
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from core.models import Event, BeltRankProgress, Match, MatchResult
+from core.models import Event, EventRegistration, BeltRankProgress, Match, MatchResult
 from core.services.notification_service import NotificationService
 
 
@@ -18,6 +18,20 @@ def notify_event_created(sender, instance, created, **kwargs):
     elif not created:
         # Event was updated
         NotificationService.create_event_notification(instance, 'event_updated')
+
+
+@receiver(post_save, sender=EventRegistration)
+def auto_close_event_on_registration(sender, instance, created, **kwargs):
+    """
+    Signal handler: Automatically close event registration if max participants reached.
+    """
+    if created:
+        event = instance.event
+        # Check if event should be closed due to max participants
+        reason = event.close_registration()
+        if reason == 'max_participants_reached':
+            # Create notification about event closure
+            NotificationService.create_event_closed_notification(event, 'max_participants_reached')
 
 
 @receiver(post_save, sender=BeltRankProgress)

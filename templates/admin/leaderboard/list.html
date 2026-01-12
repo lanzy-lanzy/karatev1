@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Leaderboard - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Leaderboard Management{% endblock %}
+
+{% block content %}
+<style>
+    .leaderboard-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .leaderboard-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .leaderboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .leaderboard-title {
+        position: relative;
+        z-index: 10;
+    }
+
+    .leaderboard-title h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .leaderboard-title p {
+        color: #dbeafe;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 1.5rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid #d1d5db;
+        background: white;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+
+    .filter-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .leaderboard-table thead {
+        background: #f3f4f6;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .leaderboard-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .leaderboard-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        color: #111827;
+    }
+
+    .leaderboard-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .leaderboard-table tbody tr:hover {
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+    }
+
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .rank-1 {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+    }
+
+    .rank-2 {
+        background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+        color: #374151;
+    }
+
+    .rank-3 {
+        background: linear-gradient(135deg, #fdba74, #fb923c);
+        color: white;
+    }
+
+    .rank-other {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #0284c7;
+    }
+
+    .trainee-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .trainee-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border-radius: 0.75rem;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .trainee-details h4 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .trainee-details p {
+        margin: 0.25rem 0 0 0;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .belt-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .belt-white { background: #f3f4f6; color: #374151; }
+    .belt-yellow { background: #fef3c7; color: #92400e; }
+    .belt-orange { background: #fed7aa; color: #92400e; }
+    .belt-green { background: #dcfce7; color: #166534; }
+    .belt-blue { background: #dbeafe; color: #0c4a6e; }
+    .belt-red { background: #fee2e2; color: #7f1d1d; }
+    .belt-black { background: #1f2937; color: #f3f4f6; }
+
+    .points-cell {
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: #3b82f6;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        padding: 2rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .pagination-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="leaderboard-container">
+    <!-- Header -->
+    <div class="leaderboard-header">
+        <div class="leaderboard-title">
+            <h2>Leaderboard Rankings</h2>
+            <p>View and manage trainee rankings and points</p>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="filter-controls">
+        <div class="filter-group">
+            <span class="filter-label">Timeframe:</span>
+            <div class="filter-buttons">
+                <a href="{% url 'admin_leaderboard' %}?timeframe=all_time" 
+                   class="filter-btn {% if timeframe == 'all_time' %}active{% endif %}">
+                    All Time
+                </a>
+                <a href="{% url 'admin_leaderboard' %}?timeframe=yearly" 
+                   class="filter-btn {% if timeframe == 'yearly' %}active{% endif %}">
+                    This Year
+                </a>
+                <a href="{% url 'admin_leaderboard' %}?timeframe=monthly" 
+                   class="filter-btn {% if timeframe == 'monthly' %}active{% endif %}">
+                    This Month
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Table -->
+    {% if leaderboards %}
+    <div class="overflow-x-auto">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">Rank</th>
+                    <th style="width: 45%;">Trainee</th>
+                    <th style="width: 15%;">Belt Rank</th>
+                    <th style="width: 20%;">Points</th>
+                    <th style="width: 15%;">Matches</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in leaderboards %}
+                <tr>
+                    <td>
+                        {% if entry.rank == 1 %}
+                        <div class="rank-badge rank-1">🥇</div>
+                        {% elif entry.rank == 2 %}
+                        <div class="rank-badge rank-2">🥈</div>
+                        {% elif entry.rank == 3 %}
+                        <div class="rank-badge rank-3">🥉</div>
+                        {% else %}
+                        <div class="rank-badge rank-other">{{ entry.rank }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="trainee-info">
+                            {% if entry.trainee.profile.profile_image %}
+                            <img src="{{ entry.trainee.profile.profile_image.url }}" 
+                                 alt="{{ entry.trainee.profile.user.get_full_name }}"
+                                 class="trainee-avatar"
+                                 style="width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; object-fit: cover;">
+                            {% else %}
+                            <div class="trainee-avatar">
+                                {% if entry.trainee.profile.user.first_name %}
+                                    {{ entry.trainee.profile.user.first_name.0 }}
+                                {% else %}
+                                    T
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="trainee-details">
+                                <h4>{{ entry.trainee.profile.user.get_full_name|default:entry.trainee.profile.user.username }}</h4>
+                                <p>{{ entry.trainee.profile.user.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="belt-badge belt-{{ entry.trainee.belt_rank|lower }}">
+                            {{ entry.trainee.get_belt_rank_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="points-cell">{{ entry.points }}</div>
+                    </td>
+                    <td>
+                        <div style="text-align: center; font-weight: 600; color: #6b7280;">
+                            {{ entry.match_count }}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900">No leaderboard data available</h3>
+        <p class="mt-2 text-gray-600">Leaderboard rankings will appear here once trainees earn points from matches.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

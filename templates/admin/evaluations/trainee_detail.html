@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}{{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }} Evaluations{% endblock %}
+{% block title %}{% if trainee.profile.user.get_full_name %}{{ trainee.profile.user.get_full_name }}{% else %}{{ trainee.profile.user.username }}{% endif %} Evaluations{% endblock %}
 
-{% block page_title %}Evaluations: {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}{% endblock %}
+{% block page_title %}Evaluations: {% if trainee.profile.user.get_full_name %}{{ trainee.profile.user.get_full_name }}{% else %}{{ trainee.profile.user.username }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -10,7 +10,7 @@
     <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6">
         <div class="flex items-start justify-between">
             <div>
-                <h2 class="text-2xl font-bold text-white">{{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}</h2>
+                 <h2 class="text-2xl font-bold text-white">{% if trainee.profile.user.get_full_name %}{{ trainee.profile.user.get_full_name }}{% else %}{{ trainee.profile.user.username }}{% endif %}</h2>
                 <div class="mt-2 space-y-1 text-gray-400">
                     <p><strong>Belt:</strong> {{ trainee.get_belt_rank_display }}</p>
                     <p><strong>Weight:</strong> {{ trainee.weight }} kg ({{ trainee.weight_class }})</p>
@@ -38,17 +38,21 @@
         </div>
         
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-10 rounded-lg border border-purple-500 border-opacity-30 p-4">
-            <p class="text-sm text-purple-300 mb-2">Average Rating</p>
-            <p class="text-3xl font-bold text-purple-100">
-                {% widthratio evaluations|length 1 1 %}
-                {% load builtins %}
-                {% with total=0 %}
-                    {% for eval in evaluations %}
-                        {{ eval.overall_rating }}
-                    {% endfor %}
-                {% endwith %}
-            </p>
-        </div>
+             <p class="text-sm text-purple-300 mb-2">Average Rating</p>
+             <p class="text-3xl font-bold text-purple-100">
+                 {% if evaluations|length > 0 %}
+                     {% load humanize %}
+                     {% with total_rating=0 %}
+                         {% for eval in evaluations %}
+                             {% widthratio eval.overall_rating 1 5 as rating_pct %}
+                         {% endfor %}
+                     {% endwith %}
+                     {{ avg_rating|default:"N/A" }}
+                 {% else %}
+                     N/A
+                 {% endif %}
+             </p>
+         </div>
         
         <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 bg-opacity-10 rounded-lg border border-yellow-500 border-opacity-30 p-4">
             <p class="text-sm text-yellow-300 mb-2">Last Evaluated</p>
@@ -69,7 +73,7 @@
                     <div>
                         <p class="text-sm text-gray-400">{{ evaluation.evaluated_at|date:"M d, Y \a\t H:i" }}</p>
                         {% if evaluation.evaluator %}
-                        <p class="text-sm text-gray-400">By {{ evaluation.evaluator.get_full_name|default:evaluation.evaluator.username }}</p>
+                        <p class="text-sm text-gray-400">By {% if evaluation.evaluator.get_full_name %}{{ evaluation.evaluator.get_full_name }}{% else %}{{ evaluation.evaluator.username }}{% endif %}</p>
                         {% endif %}
                     </div>
                     <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold

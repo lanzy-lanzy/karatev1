@@ -14,6 +14,7 @@ from core.decorators import judge_required
 from core.models import (
     Judge, Event, Match, MatchJudge, MatchResult
 )
+from core.forms import JudgeProfileForm
 
 
 @judge_required
@@ -273,3 +274,40 @@ def result_entry(request, match_id):
         }
     }
     return render(request, 'judge/result_form.html', context)
+
+
+@judge_required
+def profile_edit(request):
+    """
+    Judge profile edit view - allows updating profile information.
+    """
+    judge = get_object_or_404(Judge, profile__user=request.user)
+    profile = judge.profile
+    
+    if request.method == 'POST':
+        form = JudgeProfileForm(request.POST, request.FILES, instance=profile)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('judge_dashboard')
+        else:
+            # Display form errors
+            for field, errors in form.errors.as_data().items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        # Pre-populate form with current data
+        initial_data = {
+            'first_name': profile.user.first_name,
+            'last_name': profile.user.last_name,
+            'email': profile.user.email,
+        }
+        form = JudgeProfileForm(instance=profile, initial=initial_data)
+    
+    context = {
+        'judge': judge,
+        'form': form,
+    }
+    
+    return render(request, 'judge/profile_edit.html', context)

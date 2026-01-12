@@ -7,6 +7,8 @@
                     <th class="px-6 py-3 text-left text-gray-400 font-semibold">Name</th>
                     <th class="px-6 py-3 text-left text-gray-400 font-semibold">Current Belt</th>
                     <th class="px-6 py-3 text-left text-gray-400 font-semibold">Points</th>
+                    <th class="px-6 py-3 text-left text-gray-400 font-semibold">Promotions</th>
+                    <th class="px-6 py-3 text-left text-gray-400 font-semibold">Last Promoted</th>
                     <th class="px-6 py-3 text-left text-gray-400 font-semibold">Status</th>
                     <th class="px-6 py-3 text-center text-gray-400 font-semibold">Action</th>
                 </tr>
@@ -14,13 +16,15 @@
             <tbody class="divide-y divide-gray-700">
                 {% for trainee in trainees %}
                 <tr class="hover:bg-gray-700 transition-colors">
+                    <!-- Name Column -->
                     <td class="px-6 py-4 text-gray-300">
                         <div class="font-medium">{{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}</div>
                         <div class="text-sm text-gray-500">{{ trainee.profile.user.email }}</div>
                     </td>
+
+                    <!-- Current Belt Column -->
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" 
-                              style="background-color: {% if trainee.belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style="background-color: {% if trainee.belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
                                        {% elif trainee.belt_rank == 'yellow' %}rgba(255, 193, 7, 0.2); color: #ffc107;
                                        {% elif trainee.belt_rank == 'orange' %}rgba(255, 152, 0, 0.2); color: #ff9800;
                                        {% elif trainee.belt_rank == 'green' %}rgba(76, 175, 80, 0.2); color: #4caf50;
@@ -31,13 +35,63 @@
                             {{ trainee.get_belt_rank_display }}
                         </span>
                     </td>
+
+                    <!-- Points Column -->
                     <td class="px-6 py-4 text-gray-300">
                         {% if trainee.points %}
-                            <span class="text-blue-400">{{ trainee.points.total_points }}</span>
+                        <span class="text-blue-400 font-semibold">{{ trainee.points.total_points }}</span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            W: {{ trainee.points.wins }} / L: {{ trainee.points.losses }}
+                        </div>
                         {% else %}
-                            <span class="text-gray-500">0</span>
+                        <span class="text-gray-500">—</span>
                         {% endif %}
                     </td>
+
+                    <!-- Promotions Column -->
+                    <td class="px-6 py-4 text-gray-300">
+                        {% if trainee.belt_rank_progress.all|length > 0 %}
+                        <div class="flex items-center">
+                            <span class="text-white font-semibold text-lg">{{ trainee.belt_rank_progress.all|length }}</span>
+                            <div class="text-xs text-gray-400 ml-2">
+                                {% with trainee.belt_rank_progress.all|dictsort:"promotion_type" as sorted_promos %}
+                                {% if sorted_promos %}
+                                <div>
+                                    {% with auto_count=trainee.belt_rank_progress.all|length %}
+                                    {% for promo in trainee.belt_rank_progress.all %}
+                                    {% if promo.promotion_type == 'admin_override' %}
+                                    <span class="text-orange-400">Adm: 1+</span>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% endwith %}
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="text-gray-500">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Last Promoted Column -->
+                    <td class="px-6 py-4 text-gray-300 text-xs">
+                        {% if trainee.belt_rank_progress.all %}
+                        {% with trainee.belt_rank_progress.all|first as latest %}
+                        <div class="text-white">{{ latest.promoted_at|date:"M d, Y" }}</div>
+                        <div class="text-gray-500">{{ latest.promoted_at|timesince }} ago</div>
+                        {% if latest.promotion_type == 'admin_override' %}
+                        <span class="inline-flex items-center px-2 py-0.5 mt-1 bg-orange-500 bg-opacity-20 text-orange-400 text-xs rounded font-medium">Admin</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 mt-1 bg-green-500 bg-opacity-20 text-green-400 text-xs rounded font-medium">Auto</span>
+                        {% endif %}
+                        {% endwith %}
+                        {% else %}
+                        <span class="text-gray-500">Never</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status Column -->
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                                    {% if trainee.status == 'active' %}bg-green-500 bg-opacity-20 text-green-400
@@ -47,9 +101,10 @@
                             {{ trainee.get_status_display }}
                         </span>
                     </td>
+
+                    <!-- Action Column -->
                     <td class="px-6 py-4 text-center">
-                        <a href="{% url 'admin_belt_rank_promote' trainee.id %}" 
-                           class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+                        <a href="{% url 'admin_belt_rank_promote' trainee.id %}" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -64,7 +119,8 @@
     {% else %}
     <div class="p-8 text-center text-gray-400">
         <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <p class="text-lg font-medium mb-1">No trainees found</p>
         <p class="text-sm">Try adjusting your search or filter criteria</p>

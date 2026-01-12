@@ -121,7 +121,8 @@
 <div class="progress-container">
     <!-- Header -->
     <div style="margin-bottom: 3rem;">
-        <h1 class="gradient-text" style="font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0;">🥋 Belt Rank System</h1>
+        <h1 class="gradient-text" style="font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0;">🥋 Belt Rank System
+        </h1>
         <p style="font-size: 1rem; color: #9ca3af; margin: 0;">Track your progression from white to black belt</p>
     </div>
 
@@ -131,32 +132,30 @@
         <div>
             <!-- Belt Rank Thresholds -->
             <div class="glass-card" style="margin-bottom: 2rem;">
-                <h5 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <h5
+                    style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
                     <span>🎯</span> Belt Thresholds
                 </h5>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     {% for threshold in thresholds %}
                     <div class="belt-threshold-item" style="border-left-color: 
                         {% if threshold.get_belt_rank_display == 'White' %}#d3d3d3
-                        {% elif threshold.get_belt_rank_display == 'Yellow' %}#ffd700
-                        {% elif threshold.get_belt_rank_display == 'Orange' %}#ff9800
                         {% elif threshold.get_belt_rank_display == 'Green' %}#4caf50
-                        {% elif threshold.get_belt_rank_display == 'Blue' %}#2196f3
                         {% elif threshold.get_belt_rank_display == 'Brown' %}#8d6e63
                         {% elif threshold.get_belt_rank_display == 'Black' %}#1a1a1a
+                        {% elif threshold.get_belt_rank_display == 'Master Degree' %}#dc2626
                         {% endif %};">
                         <div class="belt-icon" style="background: 
                             {% if threshold.get_belt_rank_display == 'White' %}#d3d3d3
-                            {% elif threshold.get_belt_rank_display == 'Yellow' %}#ffd700
-                            {% elif threshold.get_belt_rank_display == 'Orange' %}#ff9800
                             {% elif threshold.get_belt_rank_display == 'Green' %}#4caf50
-                            {% elif threshold.get_belt_rank_display == 'Blue' %}#2196f3
                             {% elif threshold.get_belt_rank_display == 'Brown' %}#8d6e63
                             {% elif threshold.get_belt_rank_display == 'Black' %}#1a1a1a
+                            {% elif threshold.get_belt_rank_display == 'Master Degree' %}#dc2626
                             {% endif %};"></div>
                         <div style="flex: 1;">
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">{{ threshold.get_belt_rank_display }} Belt</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.2rem;">Required to advance</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.2rem;">Required to advance
+                            </div>
                         </div>
                         <div class="points-badge">{{ threshold.points_required }} pts</div>
                     </div>
@@ -166,21 +165,28 @@
 
             <!-- Points Earning System -->
             <div class="glass-card">
-                <h5 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <h5
+                    style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
                     <span>💎</span> Points System
                 </h5>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
                         <span style="color: #fff; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span style="font-size: 1.5rem;">🏆</span> Win in event
                         </span>
-                        <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-weight: 800; font-size: 0.9rem;">+30 pts</span>
+                        <span
+                            style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-weight: 800; font-size: 0.9rem;">+30
+                            pts</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(107, 114, 128, 0.1); border-radius: 12px; border: 1px solid rgba(107, 114, 128, 0.2);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(107, 114, 128, 0.1); border-radius: 12px; border: 1px solid rgba(107, 114, 128, 0.2);">
                         <span style="color: #fff; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span style="font-size: 1.5rem;">⚔️</span> Loss in event
                         </span>
-                        <span style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-weight: 800; font-size: 0.9rem;">+10 pts</span>
+                        <span
+                            style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-weight: 800; font-size: 0.9rem;">+10
+                            pts</span>
                     </div>
                 </div>
             </div>
@@ -190,7 +196,8 @@
         <div>
             <!-- Recent Promotions -->
             <div class="glass-card">
-                <h5 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <h5
+                    style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
                     <span>🌟</span> Recent Promotions
                 </h5>
                 {% if recent_promotions %}
@@ -199,19 +206,27 @@
                     <div class="promotion-card">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
                             <div class="promotion-avatar">
-                                {{ promotion.trainee.profile.user.get_full_name|default:promotion.trainee.profile.user.username|first|upper }}
-                            </div>
-                            <a href="{% url 'trainee_profile_points' promotion.trainee.id %}" 
-                               style="color: #fff; text-decoration: none; font-weight: 700; font-size: 0.95rem; transition: color 0.3s;">
-                                {{ promotion.trainee.profile.user.get_full_name|default:promotion.trainee.profile.user.username }}
+                                    {% if promotion.trainee.profile.user.get_full_name %}
+                                        {{ promotion.trainee.profile.user.get_full_name|first|upper }}
+                                    {% else %}
+                                        {{ promotion.trainee.profile.user.username|first|upper }}
+                                    {% endif %}
+                                </div>
+                            <a href="{% url 'trainee_profile_points' promotion.trainee.id %}"
+                                style="color: #fff; text-decoration: none; font-weight: 700; font-size: 0.95rem; transition: color 0.3s;">
+                                {% if promotion.trainee.profile.user.get_full_name %}{{ promotion.trainee.profile.user.get_full_name }}{% else %}{{ promotion.trainee.profile.user.username }}{% endif %}
                             </a>
                         </div>
-                        <div style="display: flex; gap: 0.75rem; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem;">
-                            <span style="background: rgba(255, 255, 255, 0.1); color: #9ca3af; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600;">{{ promotion.get_old_belt_rank_display }}</span>
+                        <div
+                            style="display: flex; gap: 0.75rem; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <span
+                                style="background: rgba(255, 255, 255, 0.1); color: #9ca3af; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600;">{{ promotion.old_belt_rank|default:promotion.get_old_belt_rank_display }}</span>
                             <span style="color: #10b981; font-size: 1.2rem;">→</span>
-                            <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600;">{{ promotion.get_new_belt_rank_display }}</span>
+                            <span
+                                style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600;">{{ promotion.new_belt_rank|default:promotion.get_new_belt_rank_display }}</span>
                         </div>
-                        <div style="font-size: 0.8rem; color: #9ca3af;">{{ promotion.promoted_at|date:"M d, Y — H:i" }}</div>
+                        <div style="font-size: 0.8rem; color: #9ca3af;">{{ promotion.promoted_at|date:"M d, Y — H:i" }}
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -228,7 +243,8 @@
 
     <!-- How It Works Section -->
     <div class="glass-card">
-        <h5 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 2rem 0; display: flex; align-items: center; gap: 0.5rem;">
+        <h5
+            style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 2rem 0; display: flex; align-items: center; gap: 0.5rem;">
             <span>📚</span> How It Works
         </h5>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
@@ -239,47 +255,54 @@
                         <span class="info-icon">📌</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Event Participation</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Earn points by competing in karate tournaments</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Earn points by
+                                competing in karate tournaments</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">🎯</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Match Victory</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Winning awards +30 points to advance faster</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Winning awards +30
+                                points to advance faster</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">💯</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Match Loss</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Even losses reward +10 points for participation</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Even losses reward +10
+                                points for participation</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div>
-                <h6 style="font-size: 1.1rem; font-weight: 700; color: #fff; margin: 0 0 1.25rem 0;">Belt Progression</h6>
+                <h6 style="font-size: 1.1rem; font-weight: 700; color: #fff; margin: 0 0 1.25rem 0;">Belt Progression
+                </h6>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div class="info-card">
                         <span class="info-icon">⚡</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Automatic Promotion</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Reach the threshold and you're promoted instantly</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">Reach the threshold and
+                                you're promoted instantly</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">📊</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Progressive System</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">White through Black in structured progression</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">White through Black in
+                                structured progression</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">👁️</span>
                         <div>
                             <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Track Progress</div>
-                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">View your journey toward the next belt rank</div>
+                            <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem;">View your journey
+                                toward the next belt rank</div>
                         </div>
                     </div>
                 </div>

@@ -41,12 +41,10 @@ class Trainee(models.Model):
     """
     BELT_CHOICES = [
         ('white', 'White'),
-        ('yellow', 'Yellow'),
-        ('orange', 'Orange'),
         ('green', 'Green'),
-        ('blue', 'Blue'),
         ('brown', 'Brown'),
         ('black', 'Black'),
+        ('master_degree', 'Master Degree'),
     ]
     
     STATUS_CHOICES = [
@@ -74,6 +72,7 @@ class Trainee(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     archived = models.BooleanField(default=False)
     joined_date = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['profile__user__first_name', 'profile__user__last_name']
@@ -184,6 +183,42 @@ class Event(models.Model):
     def is_full(self):
         """Check if event has reached max participants."""
         return self.participant_count >= self.max_participants
+    
+    def should_close(self):
+        """
+        Check if event should be closed based on:
+        1. Registration deadline has passed
+        2. Maximum participants reached
+        """
+        from datetime import date
+        
+        # Convert registration_deadline to date if it's a string
+        deadline = self.registration_deadline
+        if isinstance(deadline, str):
+            from datetime import datetime
+            deadline = datetime.strptime(deadline, '%Y-%m-%d').date()
+        
+        # Check if registration deadline has passed
+        if date.today() > deadline:
+            return True, "registration_deadline_passed"
+        
+        # Check if maximum participants reached
+        if self.is_full:
+            return True, "max_participants_reached"
+        
+        return False, None
+    
+    def close_registration(self):
+        """
+        Close registration for the event and save the status.
+        Returns the reason for closure.
+        """
+        should_close, reason = self.should_close()
+        if should_close and self.status == 'open':
+            self.status = 'closed'
+            self.save()
+            return reason
+        return None
 
 
 class EventRegistration(models.Model):
@@ -247,10 +282,10 @@ class Match(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['scheduled_time']
+        ordering = ['-created_at']
         verbose_name_plural = 'Matches'
         indexes = [
-            models.Index(fields=['archived', 'scheduled_time']),
+            models.Index(fields=['archived', '-created_at']),
         ]
     
     def __str__(self):
@@ -455,12 +490,10 @@ class BeltRankThreshold(models.Model):
     """
     BELT_CHOICES = [
         ('white', 'White'),
-        ('yellow', 'Yellow'),
-        ('orange', 'Orange'),
         ('green', 'Green'),
-        ('blue', 'Blue'),
         ('brown', 'Brown'),
         ('black', 'Black'),
+        ('master_degree', 'Master Degree'),
     ]
     
     belt_rank = models.CharField(max_length=20, choices=BELT_CHOICES, unique=True)
@@ -499,6 +532,12 @@ class TraineePoints(models.Model):
         """Add points for a loss (10 points)."""
         self.total_points += 10
         self.losses += 1
+        self.save()
+        self.check_belt_rank_promotion()
+
+    def add_points(self, points):
+        """Add generic points (e.g. from evaluation)."""
+        self.total_points += int(points)
         self.save()
         self.check_belt_rank_promotion()
     
@@ -661,6 +700,11 @@ class Registration(models.Model):
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
     membership_fee = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     
+    # Emergency Contact
+    emergency_contact = models.CharField(max_length=100, default='')
+    emergency_phone = models.CharField(max_length=20, default='')
+    address = models.TextField(blank=True, default='')
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
@@ -710,6 +754,15 @@ class TraineeEvaluation(models.Model):
     areas_for_improvement = models.TextField(blank=True, help_text='Areas that need improvement')
     recommendations = models.TextField(blank=True, help_text='Recommendations for training and development')
     
+    # Belt Promotion Scoring (0-100 score for each)
+    attendance_score = models.IntegerField(default=0, help_text='Score 0-100. Contributes 10% to points.')
+    sparring_score = models.IntegerField(default=0, help_text='Score 0-100. Contributes 20% to points.')
+    achievement_score = models.IntegerField(default=0, help_text='Score 0-100. Contributes 10% to points.')
+    performance_score = models.IntegerField(default=0, help_text='Score 0-100. Contributes 10% to points.')
+    
+    total_belt_points = models.IntegerField(default=0, editable=False, help_text='Calculated points added to trainee total')
+    is_points_applied = models.BooleanField(default=False, editable=False)
+    
     # Status and timestamps
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     evaluated_at = models.DateTimeField(auto_now_add=True)
@@ -738,3 +791,44 @@ class TraineeEvaluation(models.Model):
             self.spirit,
         ]
         return sum(ratings) / len(ratings) if ratings else 0
+
+    def calculate_belt_points(self):
+        """
+        Calculate points for belt rank based on weighted scores:
+        - Attendance: 10%
+        - Sparring: 20%
+        - Achievement: 10%
+        - Performance: 10% (Overall performance)
+        Total possible contribution: 50% of sum?
+        User request: "10% for attendance, sparring 20% achievement 10%, overall performance 10%"
+        Interpreted as: Point Value = (Attendance * 0.1) + (Sparring * 0.2) + (Achievement * 0.1) + (Performance * 0.1)
+        Example: 100 in all gives 10 + 20 + 10 + 10 = 50 points.
+        """
+        points = (
+            (self.attendance_score * 0.10) +
+            (self.sparring_score * 0.20) +
+            (self.achievement_score * 0.10) +
+            (self.performance_score * 0.10)
+        )
+        return int(points)
+
+    def save(self, *args, **kwargs):
+        self.total_belt_points = self.calculate_belt_points()
+        
+        # If completing the evaluation, apply points
+        if self.status == 'completed' and not self.is_points_applied:
+            # We need to save self first to get an ID if it's new, but actually we can just apply to trainee
+            # However, safer to apply after super().save() ensuring transaction is likely good
+            pass
+            
+        super().save(*args, **kwargs)
+        
+        if self.status == 'completed' and not self.is_points_applied:
+            try:
+                trainee_points = self.trainee.points
+                trainee_points.add_points(self.total_belt_points)
+                self.is_points_applied = True
+                # convert to update to avoid recursion loop if save calls signals, though save() here calls super save again
+                TraineeEvaluation.objects.filter(pk=self.pk).update(is_points_applied=True)
+            except TraineePoints.DoesNotExist:
+                pass # Should exist but handle gracefully

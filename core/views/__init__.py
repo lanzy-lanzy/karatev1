@@ -50,6 +50,7 @@ from core.views.admin import (
     payment_mark_completed,
     reports_view,
     reports_export,
+    trainee_export,
 )
 
 # Registration views

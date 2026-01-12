@@ -314,7 +314,41 @@
     .textarea-field::placeholder {
         color: #9ca3af;
     }
+    
+    .action-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markPaymentCheckbox = document.getElementById('mark_payment');
+    const approveButton = document.querySelector('button[value="approve"]');
+    
+    if (markPaymentCheckbox && approveButton) {
+        // Update button state on checkbox change
+        markPaymentCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                approveButton.disabled = false;
+                approveButton.style.opacity = '1';
+                approveButton.style.cursor = 'pointer';
+            } else {
+                approveButton.disabled = true;
+                approveButton.style.opacity = '0.5';
+                approveButton.style.cursor = 'not-allowed';
+            }
+        });
+        
+        // Initial state - if payment is unpaid and checkbox not checked, disable button
+        if (!markPaymentCheckbox.checked) {
+            approveButton.disabled = true;
+            approveButton.style.opacity = '0.5';
+            approveButton.style.cursor = 'not-allowed';
+        }
+    }
+});
+</script>
 
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Back Link -->
@@ -519,39 +553,56 @@
                 
                 <!-- Registration Status Actions (for pending) -->
                 {% if registration.status == 'pending' %}
+                
                 <form method="POST" class="space-y-4">
                     {% csrf_token %}
                     
-                    <!-- Mark as Payment Paid -->
-                    {% if registration.payment_status == 'unpaid' %}
-                    <div>
-                        <label for="mark_payment" class="checkbox-label">
-                            <input type="checkbox" id="mark_payment" name="mark_payment">
-                            <span>Mark as Payment Paid</span>
-                        </label>
+                    <!-- Approval Section -->
+                    <div style="border: 2px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; background: #f9fafb;">
+                        <h4 style="margin: 0 0 1rem 0; color: #111827; font-weight: 600;">Approve Registration</h4>
+                        
+                        <!-- Payment Status Warning (only for approval) -->
+                        {% if registration.payment_status == 'unpaid' %}
+                        <div class="info-box" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #fed7aa, #fecaca); border-color: #f97316;">
+                            <p class="label" style="color: #ea580c;">⚠️ Payment Required</p>
+                            <p class="content" style="color: #7c2d12;">Registration cannot be approved until payment is marked as paid. Check the "Mark as Payment Paid" checkbox below or process payment first.</p>
+                        </div>
+                        
+                        <div>
+                            <label for="mark_payment" class="checkbox-label">
+                                <input type="checkbox" id="mark_payment" name="mark_payment">
+                                <span>Mark as Payment Paid <span style="color: #ef4444;">*</span></span>
+                            </label>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">This must be checked to approve the registration</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Approve Button -->
+                        <button type="submit" name="action" value="approve" 
+                                class="action-button approve"
+                                {% if registration.payment_status == 'unpaid' %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+                            Approve Registration
+                        </button>
                     </div>
-                    {% endif %}
                     
-                    <!-- Approve Button -->
-                    <button type="submit" name="action" value="approve" 
-                            class="action-button approve">
-                        Approve Registration
-                    </button>
-                    
-                    <!-- Reject -->
-                    <div class="space-y-2">
-                        <label for="rejection_reason" class="block detail-label">
-                            Rejection Reason (optional)
-                        </label>
-                        <textarea id="rejection_reason" name="rejection_reason" rows="3"
-                                  placeholder="Explain why this registration is being rejected..."
-                                  class="textarea-field"></textarea>
+                    <!-- Rejection Section -->
+                    <div style="border: 2px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; background: #f9fafb;">
+                        <h4 style="margin: 0 0 1rem 0; color: #111827; font-weight: 600;">Reject Registration</h4>
+                        
+                        <div class="space-y-2">
+                            <label for="rejection_reason" class="block detail-label">
+                                Rejection Reason (optional)
+                            </label>
+                            <textarea id="rejection_reason" name="rejection_reason" rows="3"
+                                      placeholder="Explain why this registration is being rejected..."
+                                      class="textarea-field"></textarea>
+                        </div>
+                        
+                        <button type="submit" name="action" value="reject" 
+                                class="action-button reject">
+                            Reject Registration
+                        </button>
                     </div>
-                    
-                    <button type="submit" name="action" value="reject" 
-                            class="action-button reject">
-                        Reject Registration
-                    </button>
                 </form>
                 {% endif %}
             </div>

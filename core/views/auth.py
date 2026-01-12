@@ -26,7 +26,13 @@ def redirect_to_dashboard(user):
 def login_view(request):
     """Handle user login with role-based redirect."""
     if request.user.is_authenticated:
-        return redirect_to_dashboard(request.user)
+        # Check if user has a profile before redirecting
+        if hasattr(request.user, 'profile'):
+            return redirect_to_dashboard(request.user)
+        else:
+            # User is authenticated but has no profile (pending approval)
+            logout(request)
+            messages.warning(request, 'Your account is pending admin approval. Please wait for approval before logging in.')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -35,9 +41,13 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            login(request, user)
-            messages.success(request, 'Login successful!')
-            return redirect_to_dashboard(user)
+            # Check if user has a profile before logging in
+            if hasattr(user, 'profile'):
+                login(request, user)
+                messages.success(request, 'Login successful!')
+                return redirect_to_dashboard(user)
+            else:
+                messages.error(request, 'Your account is pending admin approval. Please wait for approval before logging in.')
         else:
             messages.error(request, 'Invalid username or password.')
     

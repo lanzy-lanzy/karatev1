@@ -137,8 +137,57 @@
                 </div>
             </div>
             
-            <!-- Belt Rank Breakdown -->
-            {% if report_data.members_by_belt %}
+            <!-- Belt Rank Breakdown with Trainee Names -->
+            {% if report_data.belt_rank_details %}
+            <div>
+                <h4 class="text-md font-semibold text-gray-800 mb-4">Members by Belt Rank - Detailed List</h4>
+                <div class="space-y-6">
+                    {% for belt_rank, members in report_data.belt_rank_details.items %}
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <!-- Belt Rank Header -->
+                        <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                            <h5 class="text-sm font-semibold text-gray-900">
+                                {{ belt_rank|title }}
+                                <span class="text-gray-500 text-xs ml-2">({{ members|length }} members)</span>
+                            </h5>
+                        </div>
+                        
+                        <!-- Members Table -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Weight Class</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for member in members %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{{ member.name }}</td>
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {% if member.status == 'active' %}bg-green-100 text-green-800
+                                                {% elif member.status == 'inactive' %}bg-gray-100 text-gray-800
+                                                {% elif member.status == 'suspended' %}bg-red-100 text-red-800
+                                                {% else %}bg-gray-100 text-gray-800
+                                                {% endif %}">
+                                                {{ member.status|title }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{{ member.weight_class }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif report_data.members_by_belt %}
+            <!-- Fallback: Show summary if detailed list not available -->
             <div>
                 <h4 class="text-md font-semibold text-gray-800 mb-3">Members by Belt Rank</h4>
                 <div class="overflow-x-auto">
@@ -319,13 +368,15 @@
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belt Rank</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trainees</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for item in report_data.participants_by_belt %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.trainee__belt_rank|default:"Unknown"|title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.belt_rank|default:"Unknown"|title }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ item.names }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -344,13 +395,15 @@
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight Class</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trainees</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for item in report_data.participants_by_weight_class %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.trainee__weight_class|default:"Unknown" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.weight_class|default:"Unknown" }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.count }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ item.names }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

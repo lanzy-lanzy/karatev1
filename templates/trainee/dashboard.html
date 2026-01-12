@@ -240,6 +240,62 @@
     </div>
     {% endif %}
 
+    <!-- Recent Evaluations & Scoring Breakdown (New) -->
+    {% if recent_evaluations %}
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden feature-card">
+        <div class="px-6 py-4 border-b border-gray-700 bg-gradient-to-r from-gray-750 to-gray-800">
+            <h3 class="text-lg font-bold text-white">Recent Evaluations</h3>
+            <p class="text-sm text-gray-400 mt-1">Detailed breakdown of your performance scores</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-gray-750 text-gray-400 text-xs uppercase tracking-wider">
+                        <th class="px-6 py-3 font-medium">Date</th>
+                        <th class="px-6 py-3 font-medium text-center">Attendance (10%)</th>
+                        <th class="px-6 py-3 font-medium text-center">Sparring (20%)</th>
+                        <th class="px-6 py-3 font-medium text-center">Achievement (10%)</th>
+                        <th class="px-6 py-3 font-medium text-center">Performance (10%)</th>
+                        <th class="px-6 py-3 font-medium text-right">Total Points</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700 text-sm">
+                    {% for eval in recent_evaluations %}
+                    <tr class="hover:bg-gray-750 transition-colors">
+                        <td class="px-6 py-4 text-white font-medium">{{ eval.evaluated_at|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2 py-1 rounded bg-gray-700 text-gray-300 min-w-[3rem]">
+                                {{ eval.attendance_score }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2 py-1 rounded bg-gray-700 text-gray-300 min-w-[3rem]">
+                                {{ eval.sparring_score }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2 py-1 rounded bg-gray-700 text-gray-300 min-w-[3rem]">
+                                {{ eval.achievement_score }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2 py-1 rounded bg-gray-700 text-gray-300 min-w-[3rem]">
+                                {{ eval.performance_score }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="inline-flex items-center text-green-400 font-bold">
+                                +{{ eval.total_belt_points }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Two Column Layout for Events and Matches -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Upcoming Events -->

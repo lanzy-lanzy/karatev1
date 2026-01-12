@@ -9,11 +9,12 @@
     <!-- Header Card -->
     <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700 mb-6">
         <div class="flex items-center space-x-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
                 {% if trainee.profile.profile_image %}
-                    <img src="{{ trainee.profile.profile_image.url }}" alt="{{ trainee.profile.user.get_full_name }}" class="w-16 h-16 rounded-full object-cover">
+                <img src="{{ trainee.profile.profile_image.url }}" alt="{{ trainee.profile.user.get_full_name }}" class="w-16 h-16 rounded-full object-cover">
                 {% else %}
-                    <span class="text-white text-2xl font-bold">{{ trainee.profile.user.first_name.0|upper }}{{ trainee.profile.user.last_name.0|upper }}</span>
+                <span class="text-white text-2xl font-bold">{{ trainee.profile.user.first_name.0|upper }}{{ trainee.profile.user.last_name.0|upper }}</span>
                 {% endif %}
             </div>
             <div>
@@ -22,7 +23,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Current Information -->
     <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700 mb-6">
         <h3 class="text-lg font-semibold text-white mb-4">Current Information</h3>
@@ -34,9 +35,9 @@
             <div>
                 <p class="text-sm text-gray-400">Total Points</p>
                 {% if trainee.points %}
-                    <p class="text-xl font-bold text-blue-400 mt-1">{{ trainee.points.total_points }}</p>
+                <p class="text-xl font-bold text-blue-400 mt-1">{{ trainee.points.total_points }}</p>
                 {% else %}
-                    <p class="text-xl font-bold text-gray-500 mt-1">0</p>
+                <p class="text-xl font-bold text-gray-500 mt-1">0</p>
                 {% endif %}
             </div>
             <div>
@@ -49,109 +50,162 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Error Message -->
     {% if error %}
     <div class="bg-red-500 bg-opacity-20 border border-red-500 border-opacity-50 rounded-lg p-4 mb-6">
         <p class="text-red-400">{{ error }}</p>
     </div>
     {% endif %}
-    
+
     <!-- Promotion Form -->
     <form method="POST" class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
         {% csrf_token %}
-        
+
         <h3 class="text-lg font-semibold text-white mb-6">Promote to New Belt Rank</h3>
-        
+
         <!-- New Belt Rank Selection -->
         <div class="mb-6">
             <label for="new_belt_rank" class="block text-sm font-medium text-gray-300 mb-2">New Belt Rank *</label>
-            <select 
-                id="new_belt_rank"
-                name="new_belt_rank" 
-                required
-                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
-            >
+            <select id="new_belt_rank" name="new_belt_rank" required
+                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 transition-colors">
                 <option value="">-- Select a belt rank --</option>
                 {% for value, label in belt_choices %}
-                    <option value="{{ value }}" {% if value == trainee.belt_rank %}disabled{% endif %}>
-                        {{ label }}
-                        {% if value == trainee.belt_rank %} (Current){% endif %}
-                    </option>
+                <option value="{{ value }}" {% if value == trainee.belt_rank %}disabled{% endif %}>
+                    {{ label }}
+                    {% if value == trainee.belt_rank %} (Current){% endif %}
+                </option>
                 {% endfor %}
             </select>
             <p class="text-xs text-gray-500 mt-1">Select the belt rank to promote this trainee to</p>
         </div>
-        
+
         <!-- Admin Notes -->
         <div class="mb-6">
             <label for="admin_notes" class="block text-sm font-medium text-gray-300 mb-2">Admin Notes</label>
-            <textarea 
-                id="admin_notes"
-                name="admin_notes" 
-                rows="4"
+            <textarea id="admin_notes" name="admin_notes" rows="4"
                 placeholder="Enter reason for promotion or any additional notes..."
-                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-500"
-            ></textarea>
+                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-500"></textarea>
             <p class="text-xs text-gray-500 mt-1">Optional: Provide context for the admin override</p>
         </div>
-        
+
         <!-- Info Box -->
         <div class="bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg p-4 mb-6">
             <p class="text-sm text-blue-300">
-                <span class="font-semibold">Note:</span> This promotion will be recorded as an admin override in the trainee's promotion history and a notification will be sent to the trainee.
+                <span class="font-semibold">Note:</span> This promotion will be recorded as an admin override in the
+                trainee's promotion history and a notification will be sent to the trainee.
             </p>
         </div>
-        
+
         <!-- Actions -->
         <div class="flex space-x-4">
-            <button 
-                type="submit"
-                class="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-            >
+            <button type="submit"
+                class="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
                 <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 Promote Trainee
             </button>
-            <a href="{% url 'admin_belt_promotion' %}" class="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium">
+            <a href="{% url 'admin_belt_promotion' %}"
+                class="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium">
                 Cancel
             </a>
         </div>
     </form>
-    
+
     <!-- Promotion History -->
     {% if trainee.belt_rank_progress.all %}
     <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700 mt-6">
-        <h3 class="text-lg font-semibold text-white mb-4">Promotion History</h3>
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-white mb-2">Promotion History</h3>
+            <p class="text-gray-400 text-sm">
+                Total promotions: <span class="text-blue-400 font-semibold">{{ trainee.belt_rank_progress.all|length }}</span>
+            </p>
+        </div>
+
+        <!-- Progression Timeline -->
+        <div class="mb-6">
+            <p class="text-sm text-gray-400 uppercase font-semibold mb-3">Progression Timeline</p>
+            <div class="space-y-2">
+                {% for progress in trainee.belt_rank_progress.all %}
+                <div class="flex items-center space-x-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background-color: {% if progress.old_belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
+                                   {% elif progress.old_belt_rank == 'yellow' %}rgba(255, 193, 7, 0.2); color: #ffc107;
+                                   {% elif progress.old_belt_rank == 'orange' %}rgba(255, 152, 0, 0.2); color: #ff9800;
+                                   {% elif progress.old_belt_rank == 'green' %}rgba(76, 175, 80, 0.2); color: #4caf50;
+                                   {% elif progress.old_belt_rank == 'blue' %}rgba(33, 150, 243, 0.2); color: #2196f3;
+                                   {% elif progress.old_belt_rank == 'brown' %}rgba(121, 85, 72, 0.2); color: #795548;
+                                   {% elif progress.old_belt_rank == 'black' %}rgba(0, 0, 0, 0.8); color: #fff;
+                                   {% endif %}">
+                        {{ progress.get_old_belt_rank_display }}
+                    </span>
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background-color: {% if progress.new_belt_rank == 'white' %}rgba(255, 255, 255, 0.2); color: #fff;
+                                   {% elif progress.new_belt_rank == 'yellow' %}rgba(255, 193, 7, 0.2); color: #ffc107;
+                                   {% elif progress.new_belt_rank == 'orange' %}rgba(255, 152, 0, 0.2); color: #ff9800;
+                                   {% elif progress.new_belt_rank == 'green' %}rgba(76, 175, 80, 0.2); color: #4caf50;
+                                   {% elif progress.new_belt_rank == 'blue' %}rgba(33, 150, 243, 0.2); color: #2196f3;
+                                   {% elif progress.new_belt_rank == 'brown' %}rgba(121, 85, 72, 0.2); color: #795548;
+                                   {% elif progress.new_belt_rank == 'black' %}rgba(0, 0, 0, 0.8); color: #fff;
+                                   {% endif %}">
+                        {{ progress.get_new_belt_rank_display }}
+                    </span>
+                    <span class="text-xs text-gray-500 ml-auto">{{ progress.promoted_at|date:"M d, Y" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Detailed History -->
         <div class="space-y-3">
             {% for progress in trainee.belt_rank_progress.all %}
-            <div class="bg-gray-700 bg-opacity-50 p-4 rounded-lg border-l-4 
-                        {% if progress.promotion_type == 'admin_override' %}border-orange-500{% else %}border-green-500{% endif %}">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-white font-medium">
+            <div
+                class="bg-gray-700 bg-opacity-50 p-4 rounded-lg border-l-4 
+                        {% if progress.promotion_type == 'admin_override' %}border-orange-500{% else %}border-green-500{% endif %} hover:bg-opacity-70 transition-colors">
+
+                <!-- Main Info Row -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div class="flex-1">
+                        <p class="text-white font-semibold">
                             {{ progress.get_old_belt_rank_display }} → {{ progress.get_new_belt_rank_display }}
                         </p>
-                        <p class="text-sm text-gray-400 mt-1">
+                        <div class="flex items-center gap-2 mt-1">
                             {% if progress.promotion_type == 'admin_override' %}
-                                <span class="inline-block px-2 py-1 bg-orange-500 bg-opacity-20 text-orange-400 text-xs rounded">Admin Override</span>
+                            <span class="inline-flex items-center px-2 py-1 bg-orange-500 bg-opacity-20 text-orange-400 text-xs rounded font-semibold">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 7H7v6h6V7z"></path>
+                                </svg>
+                                Admin Override
+                            </span>
                             {% else %}
-                                <span class="inline-block px-2 py-1 bg-green-500 bg-opacity-20 text-green-400 text-xs rounded">Automatic</span>
+                            <span class="inline-flex items-center px-2 py-1 bg-green-500 bg-opacity-20 text-green-400 text-xs rounded font-semibold">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"></path>
+                                </svg>
+                                Automatic
+                            </span>
                             {% endif %}
-                            • {{ progress.promoted_at|date:"M d, Y H:i" }}
-                        </p>
-                        {% if progress.admin_notes %}
-                        <p class="text-sm text-gray-400 mt-2">{{ progress.admin_notes }}</p>
-                        {% endif %}
+                            <span class="text-xs text-gray-400">{{ progress.promoted_at|date:"M d, Y" }} at {{ progress.promoted_at|time:"H:i" }}</span>
+                        </div>
                     </div>
                     <div class="text-right">
-                        <p class="text-blue-400 font-medium">{{ progress.points_earned }} pts</p>
+                        <p class="text-blue-400 font-bold text-lg">{{ progress.points_earned }}<span class="text-gray-400 text-xs font-normal ml-1">pts</span></p>
                         {% if progress.promoted_by %}
-                        <p class="text-sm text-gray-500">by {{ progress.promoted_by.get_full_name|default:progress.promoted_by.username }}</p>
+                        <p class="text-sm text-gray-500 mt-1">by {{ progress.promoted_by.get_full_name|default:progress.promoted_by.username }}</p>
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- Admin Notes if present -->
+                {% if progress.admin_notes %}
+                <div class="mt-3 pt-3 border-t border-gray-600">
+                    <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Admin Notes:</p>
+                    <p class="text-sm text-gray-300 bg-gray-800 bg-opacity-50 p-2 rounded">{{ progress.admin_notes }}</p>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
