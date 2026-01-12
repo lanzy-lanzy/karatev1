@@ -256,6 +256,13 @@ class Match(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
+
+    MATCH_TYPE_CHOICES = [
+        ('sparring', 'Sparring'),
+        ('penan', 'Penan'),
+        ('judo', 'Judo'),
+        ('breaking', 'Breaking'),
+    ]
     
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='matches')
     competitor1 = models.ForeignKey(
@@ -277,6 +284,7 @@ class Match(models.Model):
     )
     scheduled_time = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
+    match_type = models.CharField(max_length=20, choices=MATCH_TYPE_CHOICES, default='sparring')
     notes = models.TextField(blank=True)
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

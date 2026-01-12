@@ -53,6 +53,7 @@
                             <div class="text-xs text-gray-400 mt-1">
                                 {{ match.competitor1.get_belt_rank_display }} ({{ match.competitor1.weight }}kg) vs 
                                 {{ match.competitor2.get_belt_rank_display }} ({{ match.competitor2.weight }}kg)
+                                <span class="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded ml-2">{{ match.get_match_type_display }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
@@ -117,6 +118,7 @@
                         </div>
                         <div class="text-xs text-gray-400 mt-1">
                             {{ match.competitor1.get_belt_rank_display }} vs {{ match.competitor2.get_belt_rank_display }}
+                            <span class="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded ml-2">{{ match.get_match_type_display }}</span>
                         </div>
                     </div>
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold

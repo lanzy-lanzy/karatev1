@@ -1154,6 +1154,7 @@ def match_add(request):
         scheduled_time = request.POST.get('scheduled_time', '').strip()
         judge_ids = request.POST.getlist('judges')
         notes = request.POST.get('notes', '').strip()
+        match_type = request.POST.get('match_type', 'sparring').strip()
         
         errors = {}
         if not event_id:
@@ -1181,6 +1182,7 @@ def match_add(request):
                 'scheduled_time': {'value': scheduled_time, 'errors': [errors.get('scheduled_time')] if errors.get('scheduled_time') else []},
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')] if errors.get('judges') else []},
                 'notes': {'value': notes, 'errors': []},
+                'match_type': {'value': match_type, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1209,6 +1211,7 @@ def match_add(request):
                 'scheduled_time': {'value': scheduled_time, 'errors': []},
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')]},
                 'notes': {'value': notes, 'errors': []},
+                'match_type': {'value': match_type, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1220,7 +1223,8 @@ def match_add(request):
             competitor1_id=competitor1_id,
             competitor2_id=competitor2_id,
             scheduled_time=scheduled_time,
-            notes=notes
+            notes=notes,
+            match_type=match_type
         )
         
         # Assign judges
@@ -1241,9 +1245,11 @@ def match_add(request):
     events = Event.objects.filter(status__in=['open', 'closed', 'ongoing']).order_by('-event_date')
     trainees = Trainee.objects.filter(status='active').select_related('profile__user')
     judges = Judge.objects.filter(is_active=True).select_related('profile__user')
+    from core.models import Match
     
     return render(request, 'admin/matchmaking/form.html', {
-        'form': {}, 'events': events, 'trainees': trainees, 'judges': judges
+        'form': {}, 'events': events, 'trainees': trainees, 'judges': judges, 
+        'match_types': Match.MATCH_TYPE_CHOICES
     })
 
 
@@ -1263,7 +1269,9 @@ def match_edit(request, match_id):
         competitor2_id = request.POST.get('competitor2', '').strip()
         scheduled_time = request.POST.get('scheduled_time', '').strip()
         judge_ids = request.POST.getlist('judges')
+        judge_ids = request.POST.getlist('judges')
         notes = request.POST.get('notes', '').strip()
+        match_type = request.POST.get('match_type', 'sparring').strip()
         status = request.POST.get('status', 'scheduled').strip()
         
         errors = {}
@@ -1293,6 +1301,7 @@ def match_edit(request, match_id):
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')] if errors.get('judges') else []},
                 'notes': {'value': notes, 'errors': []},
                 'status': {'value': status, 'errors': []},
+                'match_type': {'value': match_type, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'match': match, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1322,6 +1331,7 @@ def match_edit(request, match_id):
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')]},
                 'notes': {'value': notes, 'errors': []},
                 'status': {'value': status, 'errors': []},
+                'match_type': {'value': match_type, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'match': match, 'events': events, 'trainees': trainees, 'judges': judges_list
@@ -1334,6 +1344,7 @@ def match_edit(request, match_id):
         match.scheduled_time = scheduled_time
         match.notes = notes
         match.status = status
+        match.match_type = match_type
         match.save()
         
         # Update judges
@@ -1366,10 +1377,13 @@ def match_edit(request, match_id):
         'judges': {'value': [str(j) for j in current_judge_ids], 'errors': []},
         'notes': {'value': match.notes, 'errors': []},
         'status': {'value': match.status, 'errors': []},
+        'match_type': {'value': match.match_type, 'errors': []},
     }
     
     return render(request, 'admin/matchmaking/form.html', {
-        'form': form_data, 'match': match, 'events': events, 'trainees': trainees, 'judges': judges
+        'form': form_data, 'match': match, 'events': events, 
+        'trainees': trainees, 'judges': judges,
+        'match_types': Match.MATCH_TYPE_CHOICES
     })
 
 
