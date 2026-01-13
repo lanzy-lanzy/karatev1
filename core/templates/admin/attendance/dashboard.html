@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Dashboard - BlackCobra Karate Club{% endblock %}
+
+{% block page_title %}Attendance Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-xl font-bold text-white">Overview</h2>
+            <p class="text-gray-400 text-sm">Manage trainee attendance records</p>
+        </div>
+        <a href="{% url 'attendance_mark' %}"
+            class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                    clip-rule="evenodd" />
+            </svg>
+            Mark Today's Attendance
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+            <h3 class="text-gray-400 text-sm font-medium mb-2">Today's Attendance</h3>
+            <div
+                class="text-3xl font-bold {% if todays_attendance == '--' or todays_attendance == 0 %}text-gray-500{% else %}text-white{% endif %}">
+                {{ todays_attendance }}
+            </div>
+            {% if today_marked %}
+            <p class="text-xs text-green-400 mt-2">Recorded</p>
+            {% else %}
+            <p class="text-xs text-yellow-500 mt-2">Not marked yet</p>
+            {% endif %}
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+            <h3 class="text-gray-400 text-sm font-medium mb-2">Active Trainees</h3>
+            <div class="text-3xl font-bold text-blue-400">{{ active_trainees_count }}</div>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+            <h3 class="text-gray-400 text-sm font-medium mb-2">Global Attendance Rate</h3>
+            <div class="text-3xl font-bold text-green-400">{{ average_attendance }}%</div>
+        </div>
+    </div>
+
+    <!-- Recent History -->
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
+        <div class="p-6 border-b border-gray-700">
+            <h3 class="text-lg font-bold text-white">Recent Activity</h3>
+        </div>
+        <div class="overflow-x-auto">
+            {% if recent_activity %}
+            <table class="w-full text-left text-sm text-gray-400">
+                <thead class="bg-gray-700/50 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Date</th>
+                        <th class="px-6 py-3">Present</th>
+                        <th class="px-6 py-3">Attendance Rate</th>
+                        <th class="px-6 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% for entry in recent_activity %}
+                    <tr class="hover:bg-gray-700/30">
+                        <td class="px-6 py-4 font-medium text-white">{{ entry.date|date:"M j, Y" }}</td>
+                        <td class="px-6 py-4">{{ entry.present }} / {{ entry.total }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <span class="mr-2">{{ entry.rate }}%</span>
+                                <div class="w-full bg-gray-600 rounded-full h-1.5 max-w-[100px]">
+                                    <div class="bg-blue-500 h-1.5 rounded-full" style="width: {{ entry.rate }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if entry.rate >= 80 %}
+                            <span
+                                class="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">High</span>
+                            {% elif entry.rate >= 50 %}
+                            <span
+                                class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">Average</span>
+                            {% else %}
+                            <span
+                                class="px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Low</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="p-6 text-center text-gray-400">
+                No attendance records found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

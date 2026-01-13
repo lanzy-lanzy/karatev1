@@ -10,136 +10,215 @@
         <!-- Match Info Header -->
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Match Details</h3>
-            <p class="text-sm text-gray-500 mt-1"><span class="font-medium text-blue-600">{{ match.get_match_type_display }}</span> • {{ match.event.name }} • {{ match.scheduled_time|date:"M d, Y H:i" }}</p>
+            <p class="text-sm text-gray-500 mt-1">
+                <span class="font-medium text-blue-600">{{ match.get_match_type_display }}</span> • {{ match.event.name }} • {{ match.scheduled_time|date:"M d, Y H:i" }}
+            </p>
         </div>
-        
+
         <!-- Competitors Display -->
-         <div class="px-6 py-6 border-b border-gray-200">
-             <div class="flex items-center justify-center space-x-8">
-                 <!-- Competitor 1 -->
-                 <div class="text-center">
-                     {% if match.competitor1.profile.profile_image %}
-                         <img src="{{ match.competitor1.profile.profile_image.url }}" 
-                              alt="{{ match.competitor1.profile.user.get_full_name }}"
-                              class="w-16 h-16 rounded-full object-cover mx-auto border-2 border-red-200">
-                     {% else %}
-                         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                             <span class="text-red-600 font-bold text-xl">
-                                 {{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}
-                             </span>
-                         </div>
-                     {% endif %}
-                     <p class="text-sm font-medium text-gray-900 mt-2">
-                         {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}
-                     </p>
-                     <p class="text-xs text-gray-500">{{ match.competitor1.get_belt_rank_display }} Belt</p>
-                     <p class="text-xs text-gray-500">{{ match.competitor1.weight }}kg</p>
-                 </div>
-                 
-                 <!-- VS -->
-                 <div class="text-center">
-                     <span class="text-2xl font-bold text-gray-400">VS</span>
-                 </div>
-                 
-                 <!-- Competitor 2 -->
-                 <div class="text-center">
-                     {% if match.competitor2.profile.profile_image %}
-                         <img src="{{ match.competitor2.profile.profile_image.url }}" 
-                              alt="{{ match.competitor2.profile.user.get_full_name }}"
-                              class="w-16 h-16 rounded-full object-cover mx-auto border-2 border-blue-200">
-                     {% else %}
-                         <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                             <span class="text-blue-600 font-bold text-xl">
-                                 {{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}
-                             </span>
-                         </div>
-                     {% endif %}
-                     <p class="text-sm font-medium text-gray-900 mt-2">
-                         {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}
-                     </p>
-                     <p class="text-xs text-gray-500">{{ match.competitor2.get_belt_rank_display }} Belt</p>
-                     <p class="text-xs text-gray-500">{{ match.competitor2.weight }}kg</p>
-                 </div>
-             </div>
-         </div>
-        
+        <div class="px-6 py-8 border-b border-gray-200 bg-gradient-to-r from-red-50 to-blue-50">
+            <div class="flex items-center justify-center space-x-6 sm:space-x-10">
+                <!-- Competitor 1 -->
+                <div class="text-center flex-1">
+                    <div class="flex justify-center mb-3">
+                        {% if match.competitor1.profile.profile_image %}
+                        <img src="{{ match.competitor1.profile.profile_image.url }}"
+                            alt="{{ match.competitor1.profile.user.get_full_name }}"
+                            class="w-20 h-20 rounded-full object-cover border-4 border-red-400 shadow-lg">
+                        {% else %}
+                        <div class="w-20 h-20 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center border-4 border-red-200 shadow-lg">
+                            <span class="text-white font-bold text-2xl">{{ match.competitor1.profile.user.first_name|slice:":1"|upper }}{{ match.competitor1.profile.user.last_name|slice:":1"|upper }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <p class="text-base font-bold text-gray-900 mt-2">{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}</p>
+                    <div class="mt-2 space-y-1">
+                        <p class="text-xs font-semibold text-red-600 uppercase tracking-wide">{{ match.competitor1.get_belt_rank_display }} Belt</p>
+                        <p class="text-sm text-gray-600"><span class="font-semibold">Weight:</span> {{ match.competitor1.weight }}kg</p>
+                    </div>
+                </div>
+
+                <!-- VS -->
+                <div class="flex flex-col items-center justify-center">
+                    <span
+                        class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-blue-600 leading-none">VS</span>
+                    <div class="mt-2 text-xs text-gray-400 font-semibold">Competition</div>
+                </div>
+
+                <!-- Competitor 2 -->
+                <div class="text-center flex-1">
+                    <div class="flex justify-center mb-3">
+                        {% if match.competitor2.profile.profile_image %}
+                        <img src="{{ match.competitor2.profile.profile_image.url }}"
+                            alt="{{ match.competitor2.profile.user.get_full_name }}"
+                            class="w-20 h-20 rounded-full object-cover border-4 border-blue-400 shadow-lg">
+                        {% else %}
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center border-4 border-blue-200 shadow-lg">
+                            <span class="text-white font-bold text-2xl">{{ match.competitor2.profile.user.first_name|slice:":1"|upper }}{{ match.competitor2.profile.user.last_name|slice:":1"|upper }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <p class="text-base font-bold text-gray-900 mt-2">{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}</p>
+                    <div class="mt-2 space-y-1">
+                        <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide">{{ match.competitor2.get_belt_rank_display }} Belt</p>
+                        <p class="text-sm text-gray-600"><span class="font-semibold">Weight:</span> {{ match.competitor2.weight }}kg</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Result Form -->
-         <form method="post" class="px-6 py-6 space-y-6">
-             {% csrf_token %}
-             
-             <!-- Score Entry Info -->
-             <div class="rounded-md bg-blue-50 p-4">
-                 <p class="text-sm text-blue-800">
-                     Winner will be automatically determined by the higher score. Both scores must be different.
-                 </p>
-             </div>
-             
-             <!-- Scores -->
-             {% if errors.scores %}
-             <div class="rounded-md bg-red-50 p-4">
-                 <p class="text-sm text-red-800">{{ errors.scores }}</p>
-             </div>
-             {% endif %}
-             <div class="grid grid-cols-2 gap-6">
-                 <div>
-                     <label for="competitor1_score" class="block text-sm font-medium text-gray-700">
-                         {{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}'s Score
-                     </label>
-                     <input type="number" name="competitor1_score" id="competitor1_score" min="0"
-                            value="{{ form_data.competitor1_score|default:0 }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm min-h-[44px] px-3 py-2 border">
-                     {% if errors.competitor1_score %}
-                     <p class="mt-1 text-sm text-red-600">{{ errors.competitor1_score }}</p>
-                     {% endif %}
-                 </div>
-                
-                <div>
-                    <label for="competitor2_score" class="block text-sm font-medium text-gray-700">
-                        {{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}'s Score
-                    </label>
+        <form method="post" class="px-6 py-6 space-y-6">
+            {% csrf_token %}
+
+            <!-- Score Entry Info -->
+            <div class="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border border-blue-200 shadow-sm">
+                <div class="flex items-start">
+                    <svg class="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-sm text-blue-800 ml-3 font-medium">
+                        Winner will be automatically determined by the higher score. Both scores must be different.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Scores -->
+            <!-- Scores -->
+            {% if errors.scores %}
+            <div class="rounded-md bg-red-50 p-4 mb-4">
+                <p class="text-sm text-red-800">{{ errors.scores }}</p>
+            </div>
+            {% endif %}
+
+            {% if match.is_promotion_match %}
+            <div class="space-y-6">
+                <div
+                    class="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg border border-yellow-300 shadow-sm">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <div class="ml-3">
+                            <h4 class="font-bold text-yellow-900 text-sm">Promotion Match Scoring</h4>
+                            <p class="text-sm text-yellow-800 mt-1">Provide scores for all match types. The total score
+                                will be calculated automatically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header Row -->
+                <div class="grid grid-cols-3 gap-4 font-bold text-center pb-3 border-b-2 border-gray-300">
+                    <div class="text-left pl-2 text-gray-700">Match Type</div>
+                    <div class="text-red-600">{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.first_name }}</div>
+                    <div class="text-blue-600">{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.first_name }}</div>
+                </div>
+
+                <!-- Sparring -->
+                <div class="grid grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-800 font-bold pl-2">Sparring</div>
+                    <input type="number" name="c1_sparring_score" min="0"
+                        value="{{ form_data.c1_sparring_score|default:0 }}"
+                        class="w-full rounded-lg border-red-300 shadow-sm focus:border-red-500 focus:ring-red-500 border text-center font-bold text-lg px-3 py-3">
+                    <input type="number" name="c2_sparring_score" min="0"
+                        value="{{ form_data.c2_sparring_score|default:0 }}"
+                        class="w-full rounded-lg border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border text-center font-bold text-lg px-3 py-3">
+                </div>
+
+                <!-- Penan -->
+                <div class="grid grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-800 font-bold pl-2">Penan</div>
+                    <input type="number" name="c1_penan_score" min="0" value="{{ form_data.c1_penan_score|default:0 }}"
+                        class="w-full rounded-lg border-red-300 shadow-sm focus:border-red-500 focus:ring-red-500 border text-center font-bold text-lg px-3 py-3">
+                    <input type="number" name="c2_penan_score" min="0" value="{{ form_data.c2_penan_score|default:0 }}"
+                        class="w-full rounded-lg border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border text-center font-bold text-lg px-3 py-3">
+                </div>
+
+                <!-- Judo -->
+                <div class="grid grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-800 font-bold pl-2">Judo</div>
+                    <input type="number" name="c1_judo_score" min="0" value="{{ form_data.c1_judo_score|default:0 }}"
+                        class="w-full rounded-lg border-red-300 shadow-sm focus:border-red-500 focus:ring-red-500 border text-center font-bold text-lg px-3 py-3">
+                    <input type="number" name="c2_judo_score" min="0" value="{{ form_data.c2_judo_score|default:0 }}"
+                        class="w-full rounded-lg border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border text-center font-bold text-lg px-3 py-3">
+                </div>
+
+                <!-- Breaking -->
+                <div class="grid grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-800 font-bold pl-2">Breaking</div>
+                    <input type="number" name="c1_breaking_score" min="0"
+                        value="{{ form_data.c1_breaking_score|default:0 }}"
+                        class="w-full rounded-lg border-red-300 shadow-sm focus:border-red-500 focus:ring-red-500 border text-center font-bold text-lg px-3 py-3">
+                    <input type="number" name="c2_breaking_score" min="0"
+                        value="{{ form_data.c2_breaking_score|default:0 }}"
+                        class="w-full rounded-lg border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border text-center font-bold text-lg px-3 py-3">
+                </div>
+
+            </div>
+            {% else %}
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                    <label for="competitor1_score" class="block text-sm font-bold text-red-900 mb-3">{{ match.competitor1.profile.user.get_full_name|default:match.competitor1.profile.user.username }}'s Score</label>
+                    <input type="number" name="competitor1_score" id="competitor1_score" min="0"
+                        value="{{ form_data.competitor1_score|default:0 }}"
+                        class="block w-full rounded-lg border-red-300 shadow-md focus:border-red-600 focus:ring-red-600 text-center font-bold text-3xl px-3 py-4 border">
+                    {% if errors.competitor1_score %}
+                    <p class="mt-2 text-sm text-red-700 font-medium">{{ errors.competitor1_score }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                    <label for="competitor2_score" class="block text-sm font-bold text-blue-900 mb-3">{{ match.competitor2.profile.user.get_full_name|default:match.competitor2.profile.user.username }}'s Score</label>
                     <input type="number" name="competitor2_score" id="competitor2_score" min="0"
-                           value="{{ form_data.competitor2_score|default:0 }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm min-h-[44px] px-3 py-2 border">
+                        value="{{ form_data.competitor2_score|default:0 }}"
+                        class="block w-full rounded-lg border-blue-300 shadow-md focus:border-blue-600 focus:ring-blue-600 text-center font-bold text-3xl px-3 py-4 border">
                     {% if errors.competitor2_score %}
-                    <p class="mt-1 text-sm text-red-600">{{ errors.competitor2_score }}</p>
+                    <p class="mt-2 text-sm text-blue-700 font-medium">{{ errors.competitor2_score }}</p>
                     {% endif %}
                 </div>
             </div>
-            
+            {% endif %}
+
             <!-- Notes -->
             <div>
-                <label for="notes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>
-                <textarea name="notes" id="notes" rows="3"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Add any notes about the match...">{{ form_data.notes }}</textarea>
+                <label for="notes" class="block text-sm font-bold text-gray-800 mb-2">Notes (Optional)</label>
+                <textarea name="notes" id="notes" rows="4"
+                    class="block w-full rounded-lg border-gray-300 shadow-md focus:border-blue-500 focus:ring-blue-500 px-4 py-3 border text-gray-700"
+                    placeholder="Add any observations or notes about the match...">{{ form_data.notes }}</textarea>
             </div>
-            
+
             <!-- Warning -->
-            <div class="rounded-md bg-yellow-50 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                    </div>
+            <div
+                class="rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 p-4 border-2 border-yellow-300 shadow-sm">
+                <div class="flex items-start">
+                    <svg class="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
                     <div class="ml-3">
-                        <h3 class="text-sm font-medium text-yellow-800">Important</h3>
-                        <p class="mt-1 text-sm text-yellow-700">
+                        <h3 class="text-sm font-bold text-yellow-900">Important</h3>
+                        <p class="mt-1 text-sm text-yellow-800">
                             Once submitted, results will be locked and cannot be modified without admin override.
                         </p>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Actions -->
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                <a href="{% url 'judge_results' %}" 
-                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 min-h-[44px]">
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'judge_results' %}"
+                    class="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-bold rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition-colors">
                     Cancel
                 </a>
-                <button type="submit" 
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 min-h-[44px]">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button type="submit"
+                    class="inline-flex items-center px-8 py-3 border border-transparent text-sm font-bold rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-colors shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     Submit Result

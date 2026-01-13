@@ -111,6 +111,32 @@ class Trainee(models.Model):
 
 
 
+
+class Attendance(models.Model):
+    """
+    Attendance model tracking daily training attendance.
+    Used for calculating belt rank promotion scores.
+    """
+    STATUS_CHOICES = [
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('excused', 'Excused'),
+    ]
+
+    trainee = models.ForeignKey(Trainee, on_delete=models.CASCADE, related_name='attendance_records')
+    date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='present')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['trainee', 'date']
+
+    def __str__(self):
+        return f"{self.trainee} - {self.date} ({self.get_status_display()})"
+
+
 class Judge(models.Model):
     """
     Judge model representing a certified official who scores matches.
@@ -285,6 +311,7 @@ class Match(models.Model):
     scheduled_time = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
     match_type = models.CharField(max_length=20, choices=MATCH_TYPE_CHOICES, default='sparring')
+    is_promotion_match = models.BooleanField(default=False, help_text="If set, judge will score all match types")
     notes = models.TextField(blank=True)
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -335,6 +362,19 @@ class MatchResult(models.Model):
     )
     competitor1_score = models.IntegerField(default=0)
     competitor2_score = models.IntegerField(default=0)
+    
+    # Detailed scoring for promotion matches
+    # Competitor 1
+    c1_sparring_score = models.IntegerField(default=0)
+    c1_penan_score = models.IntegerField(default=0)
+    c1_judo_score = models.IntegerField(default=0)
+    c1_breaking_score = models.IntegerField(default=0)
+    
+    # Competitor 2
+    c2_sparring_score = models.IntegerField(default=0)
+    c2_penan_score = models.IntegerField(default=0)
+    c2_judo_score = models.IntegerField(default=0)
+    c2_breaking_score = models.IntegerField(default=0)
     notes = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     is_locked = models.BooleanField(default=True)  # Results are locked by default after submission

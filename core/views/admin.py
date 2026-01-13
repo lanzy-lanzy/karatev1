@@ -12,7 +12,7 @@ from django.contrib import messages
 from datetime import timedelta
 
 from core.decorators import admin_required
-from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match, MatchResult, BeltRankProgress, Registration
+from core.models import Trainee, UserProfile, Event, EventRegistration, Payment, Match, MatchResult, BeltRankProgress, Registration, Attendance
 
 
 @admin_required
@@ -1155,6 +1155,7 @@ def match_add(request):
         judge_ids = request.POST.getlist('judges')
         notes = request.POST.get('notes', '').strip()
         match_type = request.POST.get('match_type', 'sparring').strip()
+        is_promotion_match = request.POST.get('is_promotion_match') == 'true'
         
         errors = {}
         if not event_id:
@@ -1183,6 +1184,7 @@ def match_add(request):
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')] if errors.get('judges') else []},
                 'notes': {'value': notes, 'errors': []},
                 'match_type': {'value': match_type, 'errors': []},
+                'is_promotion_match': {'value': is_promotion_match, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1212,6 +1214,7 @@ def match_add(request):
                 'judges': {'value': judge_ids, 'errors': [errors.get('judges')]},
                 'notes': {'value': notes, 'errors': []},
                 'match_type': {'value': match_type, 'errors': []},
+                'is_promotion_match': {'value': is_promotion_match, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1224,7 +1227,8 @@ def match_add(request):
             competitor2_id=competitor2_id,
             scheduled_time=scheduled_time,
             notes=notes,
-            match_type=match_type
+            match_type=match_type,
+            is_promotion_match=is_promotion_match
         )
         
         # Assign judges
@@ -1273,6 +1277,7 @@ def match_edit(request, match_id):
         notes = request.POST.get('notes', '').strip()
         match_type = request.POST.get('match_type', 'sparring').strip()
         status = request.POST.get('status', 'scheduled').strip()
+        is_promotion_match = request.POST.get('is_promotion_match') == 'true'
         
         errors = {}
         if not event_id:
@@ -1302,6 +1307,7 @@ def match_edit(request, match_id):
                 'notes': {'value': notes, 'errors': []},
                 'status': {'value': status, 'errors': []},
                 'match_type': {'value': match_type, 'errors': []},
+                'is_promotion_match': {'value': is_promotion_match, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'match': match, 'events': events, 'trainees': trainees, 'judges': judges
@@ -1332,6 +1338,7 @@ def match_edit(request, match_id):
                 'notes': {'value': notes, 'errors': []},
                 'status': {'value': status, 'errors': []},
                 'match_type': {'value': match_type, 'errors': []},
+                'is_promotion_match': {'value': is_promotion_match, 'errors': []},
             }
             return render(request, 'admin/matchmaking/form.html', {
                 'form': form_data, 'match': match, 'events': events, 'trainees': trainees, 'judges': judges_list
@@ -1345,6 +1352,7 @@ def match_edit(request, match_id):
         match.notes = notes
         match.status = status
         match.match_type = match_type
+        match.is_promotion_match = is_promotion_match
         match.save()
         
         # Update judges
@@ -1378,6 +1386,7 @@ def match_edit(request, match_id):
         'notes': {'value': match.notes, 'errors': []},
         'status': {'value': match.status, 'errors': []},
         'match_type': {'value': match.match_type, 'errors': []},
+        'is_promotion_match': {'value': match.is_promotion_match, 'errors': []},
     }
     
     return render(request, 'admin/matchmaking/form.html', {
@@ -2641,7 +2650,7 @@ def evaluation_add(request):
         next_evaluation_date = request.POST.get('next_evaluation_date', '').strip()
         
         # Belt Scoring fields
-        attendance_score = request.POST.get('attendance_score', '0').strip()
+        # attendance_score is now calculated automatically
         sparring_score = request.POST.get('sparring_score', '0').strip()
         achievement_score = request.POST.get('achievement_score', '0').strip()
         performance_score = request.POST.get('performance_score', '0').strip()
@@ -2659,15 +2668,30 @@ def evaluation_add(request):
             return render(request, 'admin/evaluations/form.html', {'form': form_data, 'trainees': trainees, 'rating_choices': TraineeEvaluation.RATING_CHOICES})
         
         # Calculate total belt points: attendance (10%) + sparring (20%) + achievement (10%) + performance (10%)
+        from core.models import Attendance
+        
         try:
-            att_score = int(attendance_score)
+            # Calculate attendance score automatically (last 90 days)
+            cutoff_date = timezone.now().date() - timedelta(days=90)
+            attended_days = Attendance.objects.filter(
+                trainee_id=trainee_id, 
+                date__gte=cutoff_date, 
+                status='present'
+            ).count()
+            # Assume 36 classes (3 per week * 12 weeks) is 100%
+            attendance_score = min(100, int((attended_days / 36) * 100))
+            
             spar_score = int(sparring_score)
             ach_score = int(achievement_score)
             perf_score = int(performance_score)
             
-            total_belt_points = round((att_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
+            total_belt_points = round((attendance_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
         except (ValueError, TypeError):
+            attendance_score = 0
             total_belt_points = 0
+            spar_score = 0
+            ach_score = 0
+            perf_score = 0
         
         # Create evaluation
         evaluation = TraineeEvaluation.objects.create(
@@ -2686,10 +2710,10 @@ def evaluation_add(request):
             recommendations=recommendations,
             next_evaluation_date=next_evaluation_date if next_evaluation_date else None,
             # Belt Scoring fields
-            attendance_score=int(attendance_score),
-            sparring_score=int(sparring_score),
-            achievement_score=int(achievement_score),
-            performance_score=int(performance_score),
+            attendance_score=attendance_score,
+            sparring_score=spar_score,
+            achievement_score=ach_score,
+            performance_score=perf_score,
             total_belt_points=total_belt_points,
             status='completed'
         )
@@ -2736,21 +2760,38 @@ def evaluation_edit(request, evaluation_id):
          next_evaluation_date = request.POST.get('next_evaluation_date', '').strip()
          
          # Belt Scoring fields
-         attendance_score = request.POST.get('attendance_score', str(evaluation.attendance_score)).strip()
+         # attendance_score is calculated automatically
          sparring_score = request.POST.get('sparring_score', str(evaluation.sparring_score)).strip()
          achievement_score = request.POST.get('achievement_score', str(evaluation.achievement_score)).strip()
          performance_score = request.POST.get('performance_score', str(evaluation.performance_score)).strip()
          
          # Calculate total belt points
+         from core.models import Attendance
+         
          try:
-             att_score = int(attendance_score)
+             # Calculate attendance score automatically (90 days before evaluation date)
+             eval_date = evaluation.evaluated_at.date() if evaluation.evaluated_at else timezone.now().date()
+             cutoff_date = eval_date - timedelta(days=90)
+             attended_days = Attendance.objects.filter(
+                 trainee=evaluation.trainee, 
+                 date__gte=cutoff_date,
+                 date__lte=eval_date,
+                 status='present'
+             ).count()
+             # Assume 36 classes (3 per week * 12 weeks) is 100%
+             attendance_score = min(100, int((attended_days / 36) * 100))
+             
              spar_score = int(sparring_score)
              ach_score = int(achievement_score)
              perf_score = int(performance_score)
              
-             total_belt_points = round((att_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
+             total_belt_points = round((attendance_score * 0.10) + (spar_score * 0.20) + (ach_score * 0.10) + (perf_score * 0.10))
          except (ValueError, TypeError):
              total_belt_points = evaluation.total_belt_points
+             attendance_score = evaluation.attendance_score
+             spar_score = evaluation.sparring_score
+             ach_score = evaluation.achievement_score
+             perf_score = evaluation.performance_score
          
          # Update evaluation
          evaluation.technique = int(technique)
@@ -2768,10 +2809,10 @@ def evaluation_edit(request, evaluation_id):
              evaluation.next_evaluation_date = next_evaluation_date
          
          # Update belt scoring fields
-         evaluation.attendance_score = int(attendance_score)
-         evaluation.sparring_score = int(sparring_score)
-         evaluation.achievement_score = int(achievement_score)
-         evaluation.performance_score = int(performance_score)
+         evaluation.attendance_score = attendance_score
+         evaluation.sparring_score = spar_score
+         evaluation.achievement_score = ach_score
+         evaluation.performance_score = perf_score
          evaluation.total_belt_points = total_belt_points
          
          evaluation.save()

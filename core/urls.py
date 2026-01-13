@@ -7,6 +7,7 @@ from .views import trainee as trainee_views
 from .views import judge as judge_views
 from .views import leaderboard as leaderboard_views
 from .views import notifications as notification_views
+from .views import attendance as attendance_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -100,8 +101,13 @@ urlpatterns = [
     path('admin/evaluations/<int:evaluation_id>/delete/', admin_views.evaluation_delete, name='admin_evaluation_delete'),
     path('admin/evaluations/<int:trainee_id>/trainee/', admin_views.trainee_evaluations, name='admin_trainee_evaluations'),
     
+
     # Admin Leaderboard URLs
     path('admin/leaderboard/', admin_views.leaderboard_view, name='admin_leaderboard'),
+
+    # Attendance Management URLs
+    path('admin/attendance/', attendance_views.attendance_dashboard, name='attendance_dashboard'),
+    path('admin/attendance/mark/', attendance_views.attendance_mark, name='attendance_mark'),
     
     # Trainee URLs (Requirements: 8.1-8.3, 9.1-9.4, 10.1-10.3, 11.1-11.3)
     path('trainee/dashboard/', trainee_views.dashboard_view, name='trainee_dashboard'),

@@ -17,3 +17,11 @@ def is_deadline_passed(event):
 def is_in_list(value, list_values):
     """Check if a value is in a list."""
     return value in list_values
+
+
+@register.filter
+def get_item(dictionary, key):
+    """Get an item from a dictionary by key."""
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None

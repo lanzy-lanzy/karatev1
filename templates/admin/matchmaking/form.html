@@ -51,6 +51,16 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <!-- Promotion Match Checkbox -->
+            <div class="flex items-center">
+                <input type="checkbox" name="is_promotion_match" id="is_promotion_match" value="true"
+                       {% if form.is_promotion_match.value %}checked{% endif %}
+                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="is_promotion_match" class="ml-2 block text-sm text-gray-900">
+                    Promotion Match <span class="text-gray-500 text-xs">(Judges will score all match types)</span>
+                </label>
+            </div>
             
             <!-- Competitors -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

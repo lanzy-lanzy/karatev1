@@ -185,31 +185,60 @@ def result_entry(request, match_id):
         return redirect('judge_results')
     
     if request.method == 'POST':
-        competitor1_score = request.POST.get('competitor1_score', '0').strip()
-        competitor2_score = request.POST.get('competitor2_score', '0').strip()
         notes = request.POST.get('notes', '').strip()
-        
-        # Validation
         errors = {}
         
-        try:
-            competitor1_score = int(competitor1_score)
-            if competitor1_score < 0:
-                errors['competitor1_score'] = 'Score cannot be negative'
-        except ValueError:
-            errors['competitor1_score'] = 'Invalid score'
-        
-        try:
-            competitor2_score = int(competitor2_score)
-            if competitor2_score < 0:
-                errors['competitor2_score'] = 'Score cannot be negative'
-        except ValueError:
-            errors['competitor2_score'] = 'Invalid score'
+        if match.is_promotion_match:
+            # Handle promotion scoring
+            c1_scores = {}
+            c2_scores = {}
+            
+            try:
+                competitor1_score = 0
+                competitor2_score = 0
+                
+                # C1/C2 scores
+                for style in ['sparring', 'penan', 'judo', 'breaking']:
+                    # Competitor 1
+                    val1 = request.POST.get(f'c1_{style}_score', '0').strip()
+                    score1 = int(val1)
+                    if score1 < 0: 
+                        errors['scores'] = 'Scores cannot be negative'
+                    c1_scores[f'c1_{style}_score'] = score1
+                    competitor1_score += score1
+                    
+                    # Competitor 2
+                    val2 = request.POST.get(f'c2_{style}_score', '0').strip()
+                    score2 = int(val2)
+                    if score2 < 0:
+                        errors['scores'] = 'Scores cannot be negative'
+                    c2_scores[f'c2_{style}_score'] = score2
+                    competitor2_score += score2
+                    
+            except ValueError:
+                errors['scores'] = 'Invalid score format'
+        else:
+            competitor1_score = request.POST.get('competitor1_score', '0').strip()
+            competitor2_score = request.POST.get('competitor2_score', '0').strip()
+            
+            # Validation
+            try:
+                competitor1_score = int(competitor1_score)
+                if competitor1_score < 0:
+                    errors['competitor1_score'] = 'Score cannot be negative'
+            except ValueError:
+                errors['competitor1_score'] = 'Invalid score'
+            
+            try:
+                competitor2_score = int(competitor2_score)
+                if competitor2_score < 0:
+                    errors['competitor2_score'] = 'Score cannot be negative'
+            except ValueError:
+                errors['competitor2_score'] = 'Invalid score'
         
         # Check if scores are equal
-        if isinstance(competitor1_score, int) and isinstance(competitor2_score, int):
-            if competitor1_score == competitor2_score:
-                errors['scores'] = 'Scores cannot be equal. There must be a clear winner.'
+        if not errors and competitor1_score == competitor2_score:
+            errors['scores'] = 'Total scores cannot be equal. There must be a clear winner.'
         
         if errors:
             context = {
@@ -240,6 +269,13 @@ def result_entry(request, match_id):
             existing_result.competitor2_score = competitor2_score
             existing_result.notes = notes
             existing_result.is_locked = True  # Lock after submission
+            
+            if match.is_promotion_match:
+                for k, v in c1_scores.items():
+                    setattr(existing_result, k, v)
+                for k, v in c2_scores.items():
+                    setattr(existing_result, k, v)
+            
             existing_result.save()
         else:
             # Create new result (locked by default)
@@ -250,7 +286,9 @@ def result_entry(request, match_id):
                 competitor1_score=competitor1_score,
                 competitor2_score=competitor2_score,
                 notes=notes,
-                is_locked=True
+                is_locked=True,
+                **c1_scores if match.is_promotion_match else {},
+                **c2_scores if match.is_promotion_match else {}
             )
         
         messages.success(request, 'Match result has been recorded successfully.')

@@ -8,7 +8,7 @@
 <div class="max-w-4xl mx-auto">
     <form method="POST" class="bg-gray-800 rounded-2xl border border-gray-700 p-8 space-y-8">
         {% csrf_token %}
-        
+
         <!-- Trainee Selection -->
         <div>
             <label class="text-sm font-semibold text-gray-300 block mb-3">Select Trainee</label>
@@ -19,10 +19,11 @@
                 <span class="text-gray-400 ml-2">({{ evaluation.trainee.get_belt_rank_display }})</span>
             </div>
             {% else %}
-            <select name="trainee" required class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">
+            <select name="trainee" required
+                class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">
                 <option value="">-- Select a trainee --</option>
                 {% for trainee in trainees %}
-                <option value="{{ trainee.id }}" {% if evaluation.trainee.id == trainee.id %}selected{% endif %}>
+                <option value="{{ trainee.id }}" {% if evaluation.trainee.id==trainee.id %}selected{% endif %}>
                     {{ trainee.profile.user.get_full_name|default:trainee.profile.user.username }}
                     ({{ trainee.get_belt_rank_display }})
                 </option>
@@ -34,51 +35,63 @@
         <!-- Belt Scoring Section (NEW) -->
         <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-lg p-6 border border-blue-700">
             <h3 class="text-lg font-bold text-white mb-2">Belt Rank Scoring</h3>
-            <p class="text-sm text-blue-200 mb-6">Enter scores (0-100) for each category. These points contribute to trainee's belt rank progression.</p>
-            
+            <p class="text-sm text-blue-200 mb-6">Enter scores (0-100) for each category. These points contribute to
+                trainee's belt rank progression.</p>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <!-- Attendance Score (10% weight) -->
                 <div>
                     <label class="text-sm font-semibold text-blue-100 block mb-2">
-                        Attendance Score 
+                        Attendance Score
                         <span class="text-xs text-blue-300">(10% weight)</span>
                     </label>
-                    <input type="number" name="attendance_score" min="0" max="100" required 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none" 
-                           value="{{ evaluation.attendance_score|default:0 }}" placeholder="0-100">
+                    <label class="text-sm font-semibold text-blue-100 block mb-2">
+                        Attendance Score
+                        <span class="text-xs text-blue-300">(10% weight)</span>
+                    </label>
+                    <div
+                        class="w-full px-4 py-2 rounded-lg bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed">
+                        {% if is_edit %}
+                        {{ evaluation.attendance_score }} (Auto-calculated)
+                        {% else %}
+                        Will be calculated automatically based on attendance records
+                        {% endif %}
+                    </div>
+                    <!-- Hidden field not needed as it's calculated on server, but we can keep a hidden input if JS needs it, though JS should be updated -->
+                    <input type="hidden" name="attendance_score" value="{{ evaluation.attendance_score|default:0 }}">
                 </div>
 
                 <!-- Sparring Score (20% weight) -->
                 <div>
                     <label class="text-sm font-semibold text-blue-100 block mb-2">
-                        Sparring Score 
+                        Sparring Score
                         <span class="text-xs text-blue-300">(20% weight)</span>
                     </label>
-                    <input type="number" name="sparring_score" min="0" max="100" required 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none" 
-                           value="{{ evaluation.sparring_score|default:0 }}" placeholder="0-100">
+                    <input type="number" name="sparring_score" min="0" max="100" required
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none"
+                        value="{{ evaluation.sparring_score|default:0 }}" placeholder="0-100">
                 </div>
 
                 <!-- Achievement Score (10% weight) -->
                 <div>
                     <label class="text-sm font-semibold text-blue-100 block mb-2">
-                        Achievement Score 
+                        Achievement Score
                         <span class="text-xs text-blue-300">(10% weight)</span>
                     </label>
-                    <input type="number" name="achievement_score" min="0" max="100" required 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none" 
-                           value="{{ evaluation.achievement_score|default:0 }}" placeholder="0-100">
+                    <input type="number" name="achievement_score" min="0" max="100" required
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none"
+                        value="{{ evaluation.achievement_score|default:0 }}" placeholder="0-100">
                 </div>
 
                 <!-- Performance Score (10% weight) -->
                 <div>
                     <label class="text-sm font-semibold text-blue-100 block mb-2">
-                        Performance Score 
+                        Performance Score
                         <span class="text-xs text-blue-300">(10% weight)</span>
                     </label>
-                    <input type="number" name="performance_score" min="0" max="100" required 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none" 
-                           value="{{ evaluation.performance_score|default:0 }}" placeholder="0-100">
+                    <input type="number" name="performance_score" min="0" max="100" required
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-400 focus:outline-none"
+                        value="{{ evaluation.performance_score|default:0 }}" placeholder="0-100">
                 </div>
             </div>
 
@@ -92,15 +105,16 @@
         <!-- Rating Section (Optional) -->
         <div class="bg-gray-700 rounded-lg p-6">
             <h3 class="text-lg font-bold text-white mb-6">Performance Ratings (Optional)</h3>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <!-- Technique -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Technique</label>
-                    <select name="technique" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="technique"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.technique == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.technique==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -110,10 +124,11 @@
                 <!-- Speed -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Speed</label>
-                    <select name="speed" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="speed"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.speed == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.speed==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -123,10 +138,11 @@
                 <!-- Strength -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Strength</label>
-                    <select name="strength" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="strength"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.strength == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.strength==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -136,10 +152,11 @@
                 <!-- Flexibility -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Flexibility</label>
-                    <select name="flexibility" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="flexibility"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.flexibility == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.flexibility==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -149,10 +166,11 @@
                 <!-- Discipline -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Discipline</label>
-                    <select name="discipline" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="discipline"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.discipline == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.discipline==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -162,10 +180,11 @@
                 <!-- Spirit -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Fighting Spirit</label>
-                    <select name="spirit" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                    <select name="spirit"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                         <option value="1">Poor</option>
                         {% for value, label in rating_choices %}
-                        <option value="{{ value }}" {% if evaluation.spirit == value %}selected{% endif %}>
+                        <option value="{{ value }}" {% if evaluation.spirit==value %}selected{% endif %}>
                             {{ label }}
                         </option>
                         {% endfor %}
@@ -176,10 +195,11 @@
             <!-- Overall Rating -->
             <div class="mt-6">
                 <label class="text-sm font-semibold text-gray-300 block mb-2">Overall Rating</label>
-                <select name="overall_rating" class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
+                <select name="overall_rating"
+                    class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500">
                     <option value="1">Poor</option>
                     {% for value, label in rating_choices %}
-                    <option value="{{ value }}" {% if evaluation.overall_rating == value %}selected{% endif %}>
+                    <option value="{{ value }}" {% if evaluation.overall_rating==value %}selected{% endif %}>
                         {{ label }}
                     </option>
                     {% endfor %}
@@ -190,46 +210,56 @@
         <!-- Assessment Section -->
         <div class="bg-gray-700 rounded-lg p-6">
             <h3 class="text-lg font-bold text-white mb-6">Detailed Assessment</h3>
-            
+
             <div class="space-y-6">
                 <!-- Comments -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Comments</label>
-                    <textarea name="comments" rows="4" placeholder="General comments about the trainee's performance..." class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.comments }}</textarea>
+                    <textarea name="comments" rows="4" placeholder="General comments about the trainee's performance..."
+                        class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.comments }}</textarea>
                 </div>
 
                 <!-- Strengths -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Key Strengths</label>
-                    <textarea name="strengths" rows="3" placeholder="List the trainee's strengths..." class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.strengths }}</textarea>
+                    <textarea name="strengths" rows="3" placeholder="List the trainee's strengths..."
+                        class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.strengths }}</textarea>
                 </div>
 
                 <!-- Areas for Improvement -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Areas for Improvement</label>
-                    <textarea name="areas_for_improvement" rows="3" placeholder="Areas that need improvement..." class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.areas_for_improvement }}</textarea>
+                    <textarea name="areas_for_improvement" rows="3" placeholder="Areas that need improvement..."
+                        class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.areas_for_improvement }}</textarea>
                 </div>
 
                 <!-- Recommendations -->
                 <div>
                     <label class="text-sm font-semibold text-gray-300 block mb-2">Training Recommendations</label>
-                    <textarea name="recommendations" rows="3" placeholder="Specific recommendations for training and development..." class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.recommendations }}</textarea>
+                    <textarea name="recommendations" rows="3"
+                        placeholder="Specific recommendations for training and development..."
+                        class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none">{{ evaluation.recommendations }}</textarea>
                 </div>
 
                 <!-- Next Evaluation Date -->
                 <div>
-                    <label class="text-sm font-semibold text-gray-300 block mb-2">Next Evaluation Date (Optional)</label>
-                    <input type="date" name="next_evaluation_date" class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none" value="{{ evaluation.next_evaluation_date|date:'Y-m-d' }}">
+                    <label class="text-sm font-semibold text-gray-300 block mb-2">Next Evaluation Date
+                        (Optional)</label>
+                    <input type="date" name="next_evaluation_date"
+                        class="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        value="{{ evaluation.next_evaluation_date|date:'Y-m-d' }}">
                 </div>
             </div>
         </div>
 
         <!-- Form Actions -->
         <div class="flex gap-4 pt-6 border-t border-gray-700">
-            <button type="submit" class="px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+            <button type="submit"
+                class="px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
                 {% if is_edit %}Update Evaluation{% else %}Create Evaluation{% endif %}
             </button>
-            <a href="{% url 'admin_evaluations' %}" class="px-8 py-3 rounded-lg bg-gray-700 text-white font-semibold hover:bg-gray-600 transition-colors">
+            <a href="{% url 'admin_evaluations' %}"
+                class="px-8 py-3 rounded-lg bg-gray-700 text-white font-semibold hover:bg-gray-600 transition-colors">
                 Cancel
             </a>
         </div>
@@ -237,26 +267,26 @@
 </div>
 
 <script>
-// Calculate total belt points dynamically
-function calculateTotalPoints() {
-    const attendance = parseInt(document.querySelector('input[name="attendance_score"]').value) || 0;
-    const sparring = parseInt(document.querySelector('input[name="sparring_score"]').value) || 0;
-    const achievement = parseInt(document.querySelector('input[name="achievement_score"]').value) || 0;
-    const performance = parseInt(document.querySelector('input[name="performance_score"]').value) || 0;
-    
-    // Calculate weighted total: (10% + 20% + 10% + 10%) of each score
-    const total = Math.round((attendance * 0.10) + (sparring * 0.20) + (achievement * 0.10) + (performance * 0.10));
-    
-    document.getElementById('total_points_display').textContent = total;
-}
+    // Calculate total belt points dynamically
+    function calculateTotalPoints() {
+        const attendance = parseInt(document.querySelector('input[name="attendance_score"]').value) || 0;
+        const sparring = parseInt(document.querySelector('input[name="sparring_score"]').value) || 0;
+        const achievement = parseInt(document.querySelector('input[name="achievement_score"]').value) || 0;
+        const performance = parseInt(document.querySelector('input[name="performance_score"]').value) || 0;
 
-// Add event listeners to score inputs
-document.querySelector('input[name="attendance_score"]')?.addEventListener('input', calculateTotalPoints);
-document.querySelector('input[name="sparring_score"]')?.addEventListener('input', calculateTotalPoints);
-document.querySelector('input[name="achievement_score"]')?.addEventListener('input', calculateTotalPoints);
-document.querySelector('input[name="performance_score"]')?.addEventListener('input', calculateTotalPoints);
+        // Calculate weighted total: (10% + 20% + 10% + 10%) of each score
+        const total = Math.round((attendance * 0.10) + (sparring * 0.20) + (achievement * 0.10) + (performance * 0.10));
 
-// Calculate on page load
-calculateTotalPoints();
+        document.getElementById('total_points_display').textContent = total;
+    }
+
+    // Add event listeners to score inputs
+    document.querySelector('input[name="attendance_score"]')?.addEventListener('input', calculateTotalPoints);
+    document.querySelector('input[name="sparring_score"]')?.addEventListener('input', calculateTotalPoints);
+    document.querySelector('input[name="achievement_score"]')?.addEventListener('input', calculateTotalPoints);
+    document.querySelector('input[name="performance_score"]')?.addEventListener('input', calculateTotalPoints);
+
+    // Calculate on page load
+    calculateTotalPoints();
 </script>
 {% endblock %}
